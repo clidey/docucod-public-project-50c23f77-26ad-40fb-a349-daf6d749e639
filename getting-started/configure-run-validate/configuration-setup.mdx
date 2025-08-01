@@ -3,4 +3,183 @@ title: "Configuration & Environment Setup"
 description: "Details the .env file configuration, including all required variables (such as RPC URLs, Etherscan API key, and Private Key), and explains how these settings impact deployment and testing. Provides step-by-step instructions for safely storing and sourcing sensitive credentials."
 ---
 
-*This page will automatically be generated from the codebase*
+# Configuration & Environment Setup
+
+This guide covers configuring the essential environment settings for deploying and testing the Aave Vault. It details the structure and use of the `.env` file, explaining required variables such as RPC URLs, the Etherscan API key, and the private key. You'll also learn best practices for safely handling sensitive credentials to maintain security and facilitate a smooth deployment experience.
+
+---
+
+## 1. Overview of `.env` Configuration
+
+The `.env` file serves as the centralized place to store environment-specific configuration for building, deploying, and interacting with the Aave Vault smart contracts. It controls critical deployment parameters such as network endpoints and sensitive keys.
+
+### Why Configure `.env` Properly?
+- Enables seamless network switching (mainnet, testnet, local)
+- Secures private keys and API keys away from source code
+- Centralizes deployment details for easy management
+- Prevents errors linked to misconfiguration
+
+## 2. Required Environment Variables
+
+Below are the mandatory keys you need to define in `.env` for deployment and testing:
+
+| Variable Name        | Description                                             | Example                                  |
+|----------------------|---------------------------------------------------------|------------------------------------------|
+| `RPC_URL`            | URL endpoint of the Ethereum JSON-RPC provider          | `https://mainnet.infura.io/v3/YOUR_ID`  |
+| `ETHERSCAN_API_KEY`  | API key for Etherscan to verify and interact with contracts | `ABC123XYZ`                            |
+| `PRIVATE_KEY`        | Your deployer's private key for signing transactions    | `0xabcdef...` (never share this!)         |
+
+### Detailed Explanation
+
+- **RPC_URL**: This URL is the gateway for your deployment scripts to interact with the target Ethereum network or compatible chain. Choose the correct endpoint for the network you plan to deploy to.
+
+- **ETHERSCAN_API_KEY**: This key enhances deployment scripts by allowing automatic verification and contract inspection on Etherscan’s platform.
+
+- **PRIVATE_KEY**: This cryptographic key signs all your transactions. It must be treated as a secret. Avoid committing it to any public repo or sharing with others.
+
+## 3. Creating and Managing Your `.env` File
+
+### Step 1: Create `.env`
+Create a text file in your project root named `.env`.
+
+### Step 2: Add Variables
+Fill it with the required variables (replace placeholder values):
+```ini
+RPC_URL=https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID
+ETHERSCAN_API_KEY=your_etherscan_api_key_here
+PRIVATE_KEY=your_private_key_here
+```
+
+### Step 3: Secure Your `.env`
+- Add `.env` to your `.gitignore` file to avoid accidental uploads.
+- Store backups privately and never share your private key.
+
+### Step 4: Load Environment Variables
+The deployment scripts use Foundry's `vm.env*` functions to load these variables:
+- `vm.envUint('PRIVATE_KEY')` reads the private key as a uint.
+- Other variables, such as `RPC_URL` and `ETHERSCAN_API_KEY`, are accessed similarly.
+
+This setup allows the deployment scripts (e.g., `script/Deploy.s.sol`) to pull configuration securely and flexibly.
+
+## 4. How These Variables Impact Deployment and Testing
+
+- **PRIVATE_KEY**
+  - Used in deployment scripts to sign and broadcast transactions on-chain.
+  - Must correspond to an account with sufficient ETH balance on the target network.
+
+- **RPC_URL**
+  - Determines which Ethereum network your scripts connect to.
+  - A correct and active RPC endpoint is critical for transaction submission and confirmation.
+
+- **ETHERSCAN_API_KEY**
+  - Empowers automated contract verification after deployment.
+  - Enhances transparency by linking deployed contracts with metadata on Etherscan.
+
+> In `script/Deploy.s.sol`, for example, the private key is read with `vm.envUint("PRIVATE_KEY")` to create a deployer signer that performs the deployment transaction.
+
+## 5. Step-by-Step: Preparing Environment and Running Deployment
+
+<Steps>
+<Step title="Create Your `.env` File">
+Open your project directory in the terminal, then run:
+
+```bash
+touch .env
+```
+
+Open `.env` in a text editor and add the three required entries (replace placeholders):
+
+```ini
+RPC_URL=https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID
+ETHERSCAN_API_KEY=your_etherscan_api_key_here
+PRIVATE_KEY=your_private_key_here
+```
+</Step>
+<Step title="Secure `.env` from Source Control">
+Make sure `.env` is added to `.gitignore` to avoid exposing sensitive data:
+
+```bash
+echo ".env" >> .gitignore
+```
+</Step>
+<Step title="Verify Private Key and Account Funds">
+Ensure your PRIVATE_KEY corresponds to an account with an Ethereum balance suitable for deployment gas fees:
+
+- Use a wallet tool or etherscan to check the address balance.
+- Fund your address on testnets before production deployment.
+</Step>
+<Step title="Update Deployment Parameters in Script">
+Open `script/Deploy.s.sol` and update constant placeholder addresses for `UNDERLYING_ASSET_ADDRESS`, `AAVE_POOL_ADDRESSES_PROVIDER_ADDRESS`, `PROXY_ADMIN_ADDRESS`, and `OWNER_ADDRESS` as needed.
+
+These should correspond to asset and contract addresses on your target network.
+</Step>
+<Step title="Run the Deployment Script">
+With your environment set, run the deployment script using Foundry's forge CLI:
+
+```bash
+forge script script/Deploy.s.sol --broadcast --rpc-url $RPC_URL
+```
+
+The script will pick up your `PRIVATE_KEY` from the `.env` file automatically via environment variable loading.
+</Step>
+<Step title="Confirm Deployment Success">
+If successful, the console logs will output:
+- Deployer address and balance
+- Deployed contract addresses (Vault implementation and proxy)
+
+Verify the deployed contracts on Etherscan using your API key.
+</Step>
+</Steps>
+
+## 6. Best Practices for Sensitive Credential Management
+
+<Tip>
+Never store private keys directly in source files or commit to repositories.
+Use environment variables and secret managers in CI/CD pipelines.
+Rotate private keys periodically and revoke old keys.
+Use hardware wallets or encrypted vaults when possible.
+</Tip>
+
+<Warning>
+If your private key is compromised, immediately stop deployment, move funds, and reset credentials.
+</Warning>
+
+## 7. Troubleshooting Common Environment Issues
+
+<AccordionGroup title="Common Configuration Problems">
+<Accordion title="Private Key Not Found or Invalid">
+Ensure `.env` exists and contains `PRIVATE_KEY` correctly.
+Verify no extra spaces or line breaks exist.
+Confirm the private key length (64 hex characters prefixed with 0x).
+</Accordion>
+<Accordion title="RPC_URL Connectivity Issues">
+Check internet connectivity.
+Verify the RPC endpoint is correct and responsive.
+If rate-limited, upgrade your provider plan.
+</Accordion>
+<Accordion title="Etherscan API Key Not Working">
+Make sure the API key is activated in your Etherscan account.
+Confirm no typo in the key entry.
+Use the API key in verified networks only.
+</Accordion>
+</AccordionGroup>
+
+## 8. Additional Resources
+
+- [`script/Deploy.s.sol` — Deployment Script Source Code](https://github.com/aave/Aave-Vault/blob/main/script/Deploy.s.sol)
+- [Official Etherscan API Documentation](https://etherscan.io/apis)
+- [Foundry Documentation for Environment Variables](https://book.getfoundry.sh/reference/forge-cli#env-variable-interpolation)
+- [.env Best Practices](https://12factor.net/config)
+
+---
+
+By properly configuring the `.env` file and understanding how these environment variables control deployment behavior, you ensure a secure, repeatable, and flexible environment setup that aligns with best practices and prepares you for a successful deployment of the Aave Vault.
+
+For next steps, proceed to the [Deploying Aave Vault](../deploying-vault) guide for detailed deployment instructions, or the [First Run & Quick Validation](../first-run-quick-validation) to confirm your deployment and run initial operations.
+
+
+---
+
+<Info>
+For more foundational understanding, consider reading the [What is Aave Vault?](../../overview/product-intro/what-is-aave-vault) and [Core Concepts & Terminology](../../overview/product-intro/core-concepts-terminology) pages.
+</Info>
