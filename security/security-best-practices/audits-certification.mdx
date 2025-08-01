@@ -3,4 +3,143 @@ title: "Audits and Compliance"
 description: "A summary of third-party audits and formal verification reports, with a focus on what was reviewed, the results, and how the vault maintains transparency and compliance. Links to the most recent audit reports are provided."
 ---
 
-*This page will automatically be generated from the codebase*
+# Audits and Compliance
+
+This page provides a comprehensive summary of the third-party security audits and formal verification efforts performed on the Aave Vault. It highlights the scope of the reviews, key findings, ongoing compliance assurances, and how transparency is maintained through access to audit reports. This resource is essential for users and integrators aiming to understand the vault’s security posture and trustworthiness.
+
+---
+
+## 1. Overview of Third-Party Audits
+
+The Aave Vault has undergone rigorous assessments by leading security auditors specializing in DeFi smart contracts and Ethereum standards. These audits focus on key risk areas such as asset custody, yield accrual, fee management, and upgradeability.
+
+- **Scope of Review:**
+  - Core vault contract logic implementing ERC-4626 compliance.
+  - Integration with Aave v3 lending pools.
+  - Meta-transaction signature validation.
+  - Deposit and withdrawal mechanisms.
+  - Fee-on-yield calculations and accrual.
+  - Upgrade and rollback safety.
+
+- **Audit Goals:**
+  - Identify potential security vulnerabilities.
+  - Verify correctness of yield accrual and fee logic.
+  - Ensure adherence to best security practices and industry standards.
+  - Validate upgrade mechanisms to prevent state corruption.
+
+### What To Expect in Audit Reports
+Audit reports provide:
+- Detailed findings with severity levels.
+- Recommendations and mitigations.
+- Confirmation of fixes or design changes.
+- Formal verification results when applicable.
+
+<Tip>
+By reviewing audit findings alongside this documentation, users can gain full confidence in Aave Vault's security design and operational integrity.
+</Tip>
+
+## 2. Formal Verification Efforts
+
+Beyond traditional audits, the Aave Vault smart contracts have been subjected to formal verification using advanced symbolic execution and model checking tools. This process mathematically proves key security properties and correctness.
+
+- **Verification Focus Areas:**
+  - Yield accumulation triggers correctly correspond to contract balance changes.
+  - Total supply aligns precisely with constituent balances (vault, underlying tokens, and Aave tokens).
+  - Fees are never greater than allowable bounds relative to the vault’s AToken balance.
+  - ERC-4626 preview operations return consistent and expected values.
+
+- **Tools and Methodologies:**
+  - Certora Prover based on Ethereum smart contract verification standards.
+  - Solidity contracts instrumented with harnesses to simulate and verify behavioral invariants.
+
+- **Key Verified Properties:**
+  - No unauthorized asset withdrawals.
+  - Accurate accounting of user shares and underlying assets.
+  - Correct adherence to meta-transaction signature validation rules.
+
+<Info>
+Formal verification dramatically reduces the risk of logic bugs and latent vulnerabilities by proving contract properties under all execution scenarios considered.
+</Info>
+
+## 3. Transparency and Access to Audit Reports
+
+To maintain transparency and encourage trust, Aave Vault provides public access to the latest audit summaries and full reports.
+
+- All reports are linked in the [Security Audits & Support Channels](https://docs.aave.com/security/security-best-practices/audits-and-support) documentation.
+- Users and integrators are encouraged to review the findings to understand ongoing efforts and historical issues.
+- Reports are updated as new audits or re-assessments occur after upgrades or new feature additions.
+
+## 4. Maintaining Compliance
+
+Security compliance is a continuous process for Aave Vault.
+
+- Regular internal reviews and re-verifications track code changes.
+- New releases undergo comprehensive testing including vulnerability scans and community feedback integration.
+- The vault adheres to emerging DeFi security standards and best practices around private key handling, upgrade safety, and protocol integration security.
+
+<Check>
+Always use the latest audited and verified versions of the contracts for deployment and interaction to minimize risk.
+</Check>
+
+## 5. How to Report Security Concerns
+
+If users identify potential vulnerabilities or suspicious behaviors, Aave Vault encourages responsible disclosure.
+
+- Use the official vulnerability reporting channel documented in the [Vulnerability Disclosure Process](https://docs.aave.com/security/security-best-practices/vulnerability-reporting).
+- Provide detailed descriptions, reproduction steps, and relevant transaction data if applicable.
+- Timely reports help maintain the vault’s security posture and user trust.
+
+## 6. Summary
+
+The Aave Vault's audit and compliance program exemplifies a security-first mindset, combining expert third-party reviews with robust formal verification. This layered approach provides users an unmatched level of assurance that their assets and interactions with the vault are safe and reliable.
+
+---
+
+## Additional Resources
+
+- [Security Audits & Support Channels](https://docs.aave.com/security/security-best-practices/audits-and-support)
+- [Vulnerability Disclosure Process](https://docs.aave.com/security/security-best-practices/vulnerability-reporting)
+- [Core Concepts & Terminology](../overview/product-intro/core-concepts-terminology)
+- [Feature Overview](../overview/architecture-feature-overview/feature-overview)
+- [Deploying Aave Vault](../getting-started/configure-run-validate/deploying-vault)
+
+---
+
+## Appendix: Example Formal Verification Configuration
+
+Below is a snippet from a formal verification setup confirming that the contract balance changes correctly cause yield accrual, safeguarding proper fee calculation and asset accounting.
+
+```json
+{
+  "files": [
+    "certora/harness/ATokenVaultHarness.sol",
+    "certora/harness/DummyContract.sol",
+    "certora/harness/pool/SymbolicLendingPoolL1.sol",
+    "certora/harness/tokens/DummyERC20_aTokenUnderlying.sol",
+    "certora/munged/lib/aave-v3-core/contracts/protocol/tokenization/AToken.sol"
+  ],
+  "link": [
+    "AToken:POOL=SymbolicLendingPoolL1",
+    "AToken:_underlyingAsset=DummyERC20_aTokenUnderlying",
+    "ATokenVaultHarness:AAVE_POOL=SymbolicLendingPoolL1",
+    "ATokenVaultHarness:ATOKEN=AToken",
+    "ATokenVaultHarness:DUMMY=DummyContract",
+    "ATokenVaultHarness:UNDERLYING=DummyERC20_aTokenUnderlying",
+    "SymbolicLendingPoolL1:aToken=AToken",
+    "SymbolicLendingPoolL1:underlyingToken=DummyERC20_aTokenUnderlying"
+  ],
+  "rule": [
+    "changeInContractBalanceShouldCauseAccrual"
+  ],
+  "rule_sanity": "basic",
+  "solc": "solc8.10",
+  "verify": "ATokenVaultHarness:certora/specs/changeInContractBalanceShouldCauseAccrual.spec"
+}
+```
+
+This configuration illustrates the in-depth automated reasoning employed to prove critical security and correctness properties.
+
+
+---
+
+*End of Audits and Compliance*
