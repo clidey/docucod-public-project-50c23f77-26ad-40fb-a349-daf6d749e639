@@ -3,4 +3,177 @@ title: "Upgrade and Rollback Strategies"
 description: "Provides strategies and workflows for safely migrating to updated contract logic, including use of the Upgrade script, best practices for validating new deployments, and steps for rolling back if issues arise."
 ---
 
-*This page will automatically be generated from the codebase*
+# Upgrade and Rollback Strategies for Aave Vault
+
+Safely evolving your Aave Vault deployment while maintaining user trust and operational continuity requires a well-defined upgrade and rollback strategy. This guide walks you through best practices, workflows, and actionable steps for smoothly migrating to updated contract logic using the Upgrade script. Additionally, it covers how to validate your new deployment and execute a rollback if an issue arises.
+
+---
+
+## 1. Understanding Upgradability in Aave Vault
+
+Aave Vault uses the Transparent Upgradeable Proxy pattern, allowing you to deploy logic contracts separately from the proxy that holds the user state. This separation enables seamless upgrades to your vault’s implementation while preserving state like user balances and fees.
+
+- The vault proxy forwards calls to the implementation contract.
+- The proxy admin (controlled by you) manages upgrades.
+- Upgrade initialization logic is triggered immediately after upgrade.
+
+Familiarity with OpenZeppelin's upgradeable contracts and TransparentUpgradeableProxy mechanism is critical. Review the OpenZeppelin Upgradeable Contracts documentation if you need background on the upgrade pattern and storage safety.
+
+---
+
+## 2. Preparing for Vault Upgrades
+
+Before launching an upgrade, ensure you have done the following:
+
+- **Review the new implementation code** thoroughly, focusing on new features, bug fixes, and storage layout compatibility.
+- **Test upgrades extensively** in forked or testnet environments using the same proxy and ownership setup you plan for production.
+- **Verify new contract initialization** functions properly, especially if you introduce new state variables or modified initialization logic.
+- **Backup and snapshot** current contract state and ownership details.
+
+<Tip>
+Always run full deposit/withdrawal and yield accrual scenarios post-upgrade in a staging environment to confirm behavioral integrity.
+</Tip>
+
+---
+
+## 3. Using the Upgrade Script
+
+The official `Upgrade.s.sol` script enables deploying a new vault implementation (commonly `ATokenVaultV2`) and upgrading your proxy to point to it in a controlled transaction.
+
+### Steps for Upgrading
+
+<Steps>
+<Step title="Set Upgrade Parameters">
+Configure the script with:
+- `VAULT_ADDRESS`: Your existing vault proxy address
+- `UNDERLYING_ASSET_ADDRESS`: Asset used in the vault
+- `REFERRAL_CODE`: Aave referral code used
+- `AAVE_POOL_ADDRESSES_PROVIDER_ADDRESS`: Address provider for Aave Pool
+</Step>
+<Step title="Run Upgrade Script">
+Execute the script using Foundry with the deployer private key configured:
+
+```bash
+forge script script/Upgrade.s.sol --broadcast
+```
+
+The script performs:
+- Deployment of new `ATokenVaultV2` implementation
+- Calls to initialize the new logic via `initializeV2()`
+- Executes `upgradeToAndCall` on your proxy
+</Step>
+<Step title="Confirm Logs and Events">
+Verify console output for the proxy upgrade event and initialized version 2 event.
+</Step>
+<Step title="Post-Upgrade Validation">
+Immediately test deposit, withdraw, mint, redeem, and fee accrual functions to confirm smooth upgrade.
+</Step>
+</Steps>
+
+---
+
+## 4. Best Practices for Upgrade
+
+- **Only the Proxy Admin can upgrade:** Ensure the proxy admin key is securely managed with role-based access.
+- **Non-upgradeable contracts:** Never call initializer functions more than once.
+- **Maintain Storage Layout:** Avoid modifying or removing existing state variables.
+- **Use `initializeV2` for new state:** All new state and logic initialization must happen here.
+- **Backup information:** Take blockchain snapshots before upgrading.
+
+<Warning>
+Do not upgrade if you cannot immediately verify the integrity of your vault after deployment. Failing to do so can result in loss or freezing of user funds.
+</Warning>
+
+---
+
+## 5. Validating the Upgrade
+
+After upgrading, validate your vault with these steps:
+
+1. **Check implementation address:** Confirm the proxy points to the new implementation.
+
+2. **Verify state preservation:** User balances, total supply, fees accrued, and last vault balance should remain unchanged.
+
+3. **Interact with vault:** Perform test deposits, withdrawals, and ensure fee updates emit expected events.
+
+4. **Run integration tests:** Ideally, run your full forked or local test suite to verify ERC-4626 behavior and vault integrity.
+
+<Check>
+Refer to the test suite implemented in `ATokenVaultUpgradeTest.t.sol` for detailed test scenarios validating upgrades with live users and yield accrual.
+</Check>
+
+---
+
+## 6. Rollback Strategy
+
+If the upgrade introduces problems, act quickly to revert:
+
+- **Revert proxy to previous implementation:** If you have the previous implementation address, call `upgradeTo` on the proxy with the old logic contract.
+
+- **Pause deposits/withdrawals:** If your vault supports pausing, do so to prevent user interaction during rollback.
+
+- **Communicate:** Inform your users about the rollback.
+
+- **Test thoroughly post-rollback:** Verify the vault functions as expected after rollback.
+
+<Note>
+The Aave Vault does not include built-in pausing, so controlling upgrade permissions and thorough testing before upgrade is vital.
+</Note>
+
+---
+
+## 7. Common Troubleshooting
+
+<AccordionGroup title="Troubleshooting Upgrade Issues">
+<Accordion title="Upgrade Call Fails or Reverts">
+- Check proxy admin address and ensure caller is authorized.
+- Verify new implementation contract was deployed correctly.
+- Ensure initializer calldata is valid and contracts were not already initialized.
+</Accordion>
+<Accordion title="State Mismatch after Upgrade">
+- Review storage layout changes in new implementation.
+- Check that `initializeV2()` properly sets new state without overwriting legacy variables.
+- Confirm users’ vault shares and balances remain intact.
+</Accordion>
+<Accordion title="New Features Not Working">
+- Verify all new functions added in `ATokenVaultV2` are properly initialized.
+- Check event logs for errors or missing emit signals.
+- Re-run tests on staging before production launch.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Appendix: Upgrade Flow Diagram
+
+```mermaid
+flowchart TD
+  subgraph Upgrade Process
+    A[Start Upgrade Script] --> B[Deploy New Implementation (ATokenVaultV2)]
+    B --> C[Encode initializeV2 Call Data]
+    C --> D[Call upgradeToAndCall on Proxy]
+    D --> E[Proxy Implementation Address Updated]
+    E --> F[Initialize New Fields via initializeV2]
+    F --> G[Upgrade Completed]
+  end
+  G --> H[Post-Upgrade Validation]
+  H --> I{Validation Passed?}
+  I -- Yes --> J[Operation Continues]
+  I -- No --> K[Initiate Rollback]
+  K --> L[Upgrade Proxy to Previous Implementation]
+  L --> J
+```
+
+---
+
+## Related Documentation
+
+- [Deploying Aave Vault](/getting-started/configure-run-validate/deploying-vault) — Guidance on initial deployment.
+- [Configuring Deployment Parameters](/deployment/deploying-the-vault/configuring-deployment-parameters) — Details on configuring deployment scripts.
+- [Security Hardening](/deployment/operational-excellence/security-hardening) — Best practices to secure your deployment.
+- [First Run & Quick Validation](/getting-started/configure-run-validate/first-run-quick-validation) — Post-deployment validation techniques.
+- [Audits and Support](/getting-started/troubleshooting-support/audits-and-support) — External audit and security insights.
+
+---
+
+With disciplined upgrade and rollback processes, you ensure your Aave Vault deployment remains secure, resilient, and adaptive, safeguarding user assets while delivering innovative enhancements.
