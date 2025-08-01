@@ -3,4 +3,156 @@ title: "System Architecture"
 description: "Explore a high-level diagram (using Mermaid) that illustrates the principal components—user, vault contract, Aave v3 pool, ERC-20 tokens—and the main operational pathways (deposit, withdraw, yield management, fee accrual). This provides a visual summary for technical and non-technical readers."
 ---
 
-*This page will automatically be generated from the codebase*
+# System Architecture
+
+Explore the core system architecture of the Aave Vault through a clear, high-level diagram and detailed explanation. This page provides a visual and conceptual overview of the principal components and operational flows, helping both technical and non-technical users understand how deposits, withdrawals, yield accrual, and fee management interact seamlessly within the vault ecosystem.
+
+---
+
+## Overview
+
+The Aave Vault system is designed as a tokenized vault adhering to the ERC-4626 standard, integrating deeply with the Aave v3 lending protocol to enable efficient and transparent yield generation on deposited assets. This architecture visualizes key entities and their interactions:
+
+- **User:** Initiates deposits and withdrawals, interacts with vault shares.
+- **Vault Contract:** Manages deposits, withdrawals, share accounting, yield fees, and interfaces with Aave v3.
+- **Aave v3 Lending Pool:** Provides the yield engine by lending deposited underlying assets and generating interest.
+- **ERC-20 Tokens:** Represent both the vault shares and supported underlying assets.
+
+This diagram unifies these components with arrows that illustrate the major processes, clarifying how value flows and how the system maintains security and efficiency.
+
+---
+
+## System Architecture Diagram
+
+```mermaid
+flowchart TD
+  %% Define main entities
+  User["User"]
+  Vault["Vault Contract (ERC-4626)"]
+  AavePool["Aave v3 Lending Pool"]
+  UnderlyingToken["ERC-20 Underlying Token"]
+  VaultShares["Vault Shares (ERC-4626 Token)"]
+
+  %% User to Vault interactions
+  User -->|"Deposit Underlying Token"| Vault
+  Vault -->|"Mint Vault Shares"| User
+  User -->|"Redeem Vault Shares"| Vault
+  Vault -->|"Return Underlying Token"| User
+
+  %% Vault and Aave Integration
+  Vault -->|"Deposit Underlying Token"| AavePool
+  AavePool -->|"Accrue Yield Interest"| Vault
+  Vault -->|"Withdraw Underlying Token"| AavePool
+
+  %% Vault Shares reflect ownership
+  VaultShares -.->|"Represent Claim on Vault Assets"| Vault
+
+  %% Fee & Yield Management
+  Vault -.->|"Calculate and Accrue Fee on Yield"| Vault
+
+  %% Labels for clarity
+  classDef component fill:#f9f,stroke:#333,stroke-width:2px;
+  class User,Vault,AavePool,UnderlyingToken,VaultShares component;
+
+  %% Informational notes
+  note right of Vault: Manages deposits, withdrawals,
+  note right of Vault: fee-accrual, and share minting.
+  note right of AavePool: Handles lending, interest
+  note right of AavePool: accrual, and liquidity.
+```
+
+---
+
+## Core Components Explained
+
+### User
+
+The starting and ending point of the vault flow. Users:
+
+- Deposit supported ERC-20 tokens into the vault.
+- Receive vault shares representing their stake.
+- Redeem shares to withdraw underlying assets.
+
+Users benefit from passive yield without actively managing lending positions.
+
+### Vault Contract (ERC-4626)
+
+The central contract that:
+
+- Accepts deposits and issues vault shares.
+- Interacts with the Aave v3 lending pool to lend the underlying asset.
+- Calculates accrued yield and applies fee-on-yield.
+- Handles redemption requests, ensuring users receive their correct share of underlying assets.
+
+It abstracts complexity, offering a simple interface while guaranteeing compliance with ERC-4626.
+
+### Aave v3 Lending Pool
+
+The yield engine where the underlying tokens supplied by the vault earn interest.
+
+- Accepts deposits of the underlying ERC-20 tokens from the vault.
+- Provides yield by lending out these tokens in the Aave ecosystem.
+- Periodically accrues interest back to the vault, enabling yield distribution.
+
+### ERC-20 Tokens
+
+There are two types in this system:
+
+- **Underlying Token:** The asset users deposit (e.g., DAI, USDC).
+- **Vault Shares:** Tokenized proofs of deposit, compliant with ERC-4626, that represent ownership in the vault.
+
+Vault shares increase in value over time relative to the underlying as yield accrues.
+
+---
+
+## Key Operational Pathways
+
+### Deposit and Minting Flow
+
+1. User approves underlying tokens to vault.
+2. User calls the vault deposit function with amount.
+3. Vault deposits underlying tokens into Aave v3 lending pool.
+4. Vault mints appropriate amount of vault shares to user.
+
+This flow ensures users gain exposure to the underlying token yield seamlessly.
+
+### Withdrawal and Redemption Flow
+
+1. User redeems vault shares with the vault.
+2. Vault calculates corresponding underlying tokens.
+3. Vault requests withdrawal from the Aave pool if necessary.
+4. Vault transfers underlying tokens back to user.
+
+Ensures liquidity while maintaining accurate accounting.
+
+### Yield Management and Fee Accrual
+
+- The vault tracks yield generated by lending via Aave.
+- A preconfigured fee-on-yield is accrued to the vault manager.
+- Fees are deducted transparently when yield is harvested.
+
+This mechanism aligns incentives between users and vault managers.
+
+---
+
+## Practical Tips
+
+- Always approve underlying tokens before attempting deposits.
+- Understand vault shares represent a claim on the full pool of underlying plus yield minus fees.
+- Redemption may involve interaction delays with Aave's liquidity.
+- Monitoring vault share value over time ensures awareness of yield performance.
+
+---
+
+## Next Steps
+
+To deepen your understanding and effectively start using the vault:
+
+- Visit [What is Aave Vault?](/overview/product-intro/what-is-aave-vault) for a conceptual introduction.
+- Explore [Core Concepts & Terminology](/overview/product-intro/core-concepts-terminology) for foundational terms.
+- Review [Feature Overview](/overview/architecture-feature-overview/feature-overview) to understand functionalities.
+- Proceed to [Getting Started guides](/getting-started) for configuration and hands-on instructions.
+
+---
+
+This architecture overview provides a vital blueprint for grasping how Aave Vault operates as a bridge between users and the yield generating capabilities of Aave v3, while maintaining transparency, safety, and ease of use.
