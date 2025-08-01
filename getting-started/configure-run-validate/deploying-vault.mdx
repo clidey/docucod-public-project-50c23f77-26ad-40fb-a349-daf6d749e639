@@ -3,4 +3,225 @@ title: "Deploying Aave Vault"
 description: "Covers how to deploy the vault contract onto Mumbai, Polygon, or Avalanche networks. Explains usage of Foundry scripts, how to verify deployment parameters, and how to execute deployments with broadcasting and verification commands. Also highlights differences between deploying to testnet and mainnet."
 ---
 
-*This page will automatically be generated from the codebase*
+# Deploying Aave Vault
+
+This guide walks you through deploying the Aave Vault contract onto the Mumbai, Polygon, or Avalanche networks. You will learn how to configure the deployment parameters, leverage Foundry scripts to broadcast and verify your deployment, and understand the key differences when deploying to testnets versus mainnet.
+
+---
+
+## Prerequisites & Environment Setup
+
+Before deploying, ensure you have:
+
+- **Foundry Installed:** The deployment relies on the Foundry toolchain (`forge`).
+- **Configured `.env` File:** Prepare a `.env` in your project root with the following essential variables:
+
+  ```bash
+  POLYGON_RPC_URL=your_polygon_rpc_url
+  MUMBAI_RPC_URL=your_mumbai_rpc_url
+  ETHERSCAN_API_KEY=your_etherscan_api_key
+  PRIVATE_KEY=your_deployer_private_key
+  ```
+
+- **Configured Deployment Script:** Set your custom deployment parameters in the `script/Deploy.s.sol` script.
+
+- **Sufficient Balance:** Your deployer wallet must contain enough native tokens to cover transaction gas fees on the target network.
+
+
+<Tip>
+Always keep your private keys secure and never expose them in public repositories. Use environment variables or secure vaults to manage sensitive deployment credentials.
+</Tip>
+
+---
+
+## Step 1: Configure Deployment Parameters
+
+Customize the deployment variables in `script/Deploy.s.sol` to fit your vault:
+
+```solidity
+// script/Deploy.s.sol excerpt
+address UNDERLYING_ASSET_ADDRESS = address(0); // e.g., DAI token address on network
+uint16 REFERRAL_CODE = 0; // Aave referral code (usually 0 if not using referrals)
+address AAVE_POOL_ADDRESSES_PROVIDER_ADDRESS = address(0); // Aave PoolAddressesProvider address
+address constant PROXY_ADMIN_ADDRESS = address(0); // Proxy admin who controls upgrades
+address constant OWNER_ADDRESS = address(0); // Vault owner address
+string constant SHARE_NAME = "Wrapped aDAI"; // Example vault share token name
+string constant SHARE_SYMBOL = "waDAI"; // Vault share token symbol
+uint256 constant FEE = 0.1e18; // Vault fee: 0.1 * 1e18 = 10%
+uint256 constant INITIAL_LOCK_DEPOSIT = 10e18; // Initial deposit amount in underlying asset
+```
+
+### Important Parameter Notes:
+
+- The **initial lock deposit** must be non-zero to prevent frontrunning attacks.
+- Use valid, deployed contract addresses for the underlying asset and Aave PoolAddressesProvider on the target network.
+- The **PROXY_ADMIN_ADDRESS** usually corresponds to your governance or upgrade controller.
+- Verify that the fee is expressed as a wad (1e18 = 100%).
+
+---
+
+## Step 2: Load Environment Variables
+
+Before running deployment commands, load your `.env` variables into the shell environment:
+
+```bash
+source .env
+```
+
+This step ensures your `PRIVATE_KEY` and RPC URLs are accessible to the Foundry scripts.
+
+---
+
+## Step 3: Deploying the Vault Contract
+
+Use Foundry's `forge script` command to compile, broadcast, and verify the deployment. The deployment script will:
+
+- Broadcast transactions signed by your private key
+- Deploy the ATokenVault implementation
+- Deploy the TransparentUpgradeableProxy
+- Initialize the vault with the configured parameters
+- Output key addresses and configuration values
+
+### Mumbai Testnet Deployment Example
+
+```bash
+forge script script/Deploy.s.sol:Deploy --rpc-url $MUMBAI_RPC_URL --broadcast --verify --legacy -vvvv
+```
+
+### Polygon Mainnet Deployment Example
+
+```bash
+forge script script/Deploy.s.sol:Deploy --rpc-url $POLYGON_RPC_URL --broadcast --verify --legacy -vvvv
+```
+
+### Command Flags Explained:
+
+- `--rpc-url`: URL of the JSON-RPC endpoint for the target network
+- `--broadcast`: Actually send transactions instead of just simulating
+- `--verify`: Automatically verify contracts on Etherscan
+- `--legacy`: Use legacy transaction type (for compatibility)
+- `-vvvv`: Verbose output for detailed logs during deployment
+
+---
+
+## Step 4: Verify Deployment Output
+
+During deployment, you will see console outputs including:
+
+- Deployer address and balance
+- Chain ID confirming network
+- Vault implementation contract address
+- Proxy address of the deployed vault
+- Encoded initializer data
+- Key vault parameters such as POOL_ADDRESSES_PROVIDER, REFERRAL_CODE, UNDERLYING token address, ATOKEN address, share name/symbol, owner, and fees
+
+Example output snippet:
+
+```
+Deployer address: 0xYourDeployerAddress
+Deployer balance: 1.2345 ETH
+BlockNumber: 12345678
+ChainId: 80001
+Deploying vault...
+Vault impl deployed at: 0xImplementationAddress
+Deploying proxy...
+Precomputed proxy address: 0xProxyAddress
+Allowance for proxy: 10000000000000000000
+Vault proxy deployed and initialized at: 0xProxyAddress
+
+Vault data:
+POOL_ADDRESSES_PROVIDER: 0xProviderAddress
+REFERRAL_CODE: 0
+UNDERLYING: 0xDaiTokenAddress
+ATOKEN: 0xAaveATokenAddress
+Name: Wrapped aDAI
+Symbol: waDAI
+Owner: 0xVaultOwnerAddress
+Fee: 100000000000000000
+```
+
+<Tip>
+Verify that the addresses and parameters match your intended configuration before proceeding to use the vault.
+</Tip>
+
+---
+
+## Differences Between Testnet and Mainnet Deployment
+
+| Aspect                 | Mumbai / Testnets                                   | Polygon / Mainnet                      |
+|------------------------|----------------------------------------------------|--------------------------------------|
+| RPC URL                | Use `$MUMBAI_RPC_URL` pointing to testnet provider| Use `$POLYGON_RPC_URL` for mainnet   |
+| Deployer Balance       | Requires testnet tokens for gas                    | Requires mainnet tokens (MATIC)       |
+| Verification           | Verified on testnet block explorers                | Verified on live Etherscan            |
+| Initial Deposits       | Usually smaller to reduce cost                      | Set according to real production needs|
+| Fee Sensitivity        | Testing small fee values                            | Confirm fee values to align with model|
+
+---
+
+## Step 5: Troubleshooting Common Issues
+
+<AccordionGroup title="Common Deployment Issues and Solutions">
+<Accordion title="Initial deposit set to zero">
+
+This will cause the deployment to revert as it protects against frontrunning attacks.
+
+**Solution:** Set `INITIAL_LOCK_DEPOSIT` to a non-zero value in `script/Deploy.s.sol`.
+</Accordion>
+
+<Accordion title="Incorrect or missing environment variables">
+
+If RPC URLs or PRIVATE_KEY are missing or incorrect, broadcasting will fail.
+
+**Solution:**
+1. Confirm `.env` file has all required keys.
+2. Run `source .env` before deployment.
+3. Ensure that the RPC provider endpoints are reachable.
+</Accordion>
+
+<Accordion title="Insufficient deployer balance">
+
+Deployment transactions will fail if your deployer wallet lacks native tokens for gas.
+
+**Solution:** Add native testnet/mainnet tokens to your deployer wallet.
+</Accordion>
+
+<Accordion title="Contract verification errors">
+
+If contract verification on Etherscan fails, errors may relate to incorrect API keys or RPC delays.
+
+**Solution:**
+1. Verify your `ETHERSCAN_API_KEY` is correct.
+2. Increase verbosity to debug `forge` output.
+3. Check Etherscan for recent transaction indexing.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Additional Tips & Best Practices
+
+- **Keep your deployer keys secure**. Utilize hardware wallets or secure key management.
+- **Verify all addresses for your network** to avoid deploying with wrong token or Aave provider addresses.
+- **Review and test deployments on Mumbai or other testnets before mainnet** to avoid costly mistakes.
+- **Monitor deployment logs** carefully, Foundry’s verbose mode (`-vvvv`) shows low-level details.
+- **Use proxy admin addresses carefully**, giving upgrade permissions only to trusted entities.
+
+---
+
+## Next Steps
+
+After successful deployment:
+
+- Proceed to the [First Run & Quick Validation Guide](/getting-started/configure-run-validate/first-run-quick-validation) to test vault functionality.
+- Reference the [Configuration & Environment Setup](/getting-started/configure-run-validate/configuration-setup) page if you need to adjust your setup.
+- For upgrades, consult the `script/Upgrade.s.sol` script for vault version upgrades.
+
+
+---
+
+## References
+
+- [Deployment Script (`script/Deploy.s.sol`)](https://github.com/aave/Aave-Vault/blob/main/script/Deploy.s.sol)
+- [README with deployment examples](https://github.com/aave/Aave-Vault/blob/main/README.md)
+
+---
