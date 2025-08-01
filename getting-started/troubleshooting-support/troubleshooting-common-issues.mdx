@@ -3,4 +3,187 @@ title: "Troubleshooting Common Setup Issues"
 description: "Provides solutions to frequent issues encountered during installation, environment configuration, RPC connection setup, or contract deployment. Includes tips for debugging failed tests or incorrect .env setups, as well as pointers to where to find detailed error logs."
 ---
 
-*This page will automatically be generated from the codebase*
+# Troubleshooting Common Setup Issues
+
+This troubleshooting guide addresses frequent issues users face during the setup of the Aave Vault environment. Whether you encounter installation failures, misconfigured `.env` files, RPC connection problems, or deployment errors, this guide provides practical advice to help you quickly identify and resolve common pitfalls.
+
+---
+
+## 1. Installation Issues
+
+### Problem: Repository Clone or Dependency Installation Fails
+
+- **Cause**: Network connectivity problems, Git misconfiguration, or missing Foundry installation.
+- **Solution**:
+  1. Confirm stable internet connectivity.
+  2. Ensure Git is installed and reachable via command line by running:
+  ```bash
+  git --version
+  ```
+  3. Follow the [Installation Instructions](/getting-started/setup-intro/installation) guide to correctly install Foundry:
+  ```bash
+  curl -L https://foundry.paradigm.xyz | bash
+  foundryup
+  ```
+  4. Re-clone the repository if necessary:
+  ```bash
+  git clone https://github.com/aave/Aave-Vault.git
+  cd Aave-Vault
+  ```
+  5. Run:
+  ```bash
+  forge install
+  ```
+
+### Problem: Build Errors During `forge build`
+
+- **Cause**: Incorrect compiler version or missing dependencies.
+- **Solution**:
+  1. Check Solidity compiler version matches project's requirement (`solc 0.8.10`):
+  ```bash
+  forge config
+  ```
+  2. Set compiler version in the `foundry.toml` if necessary:
+  ```ini
+  [profile.default]
+  solc_version = 0.8.10
+  ```
+  3. Confirm dependencies installed properly.
+  4. Clean build cache and rebuild:
+  ```bash
+  forge clean
+  forge build
+  ```
+
+---
+
+## 2. Environment Configuration Errors
+
+### Problem: `.env` File Variables Not Loaded or Setup Incorrectly
+
+- **Common Causes**: Missing variables, formatting errors, or using incorrect RPC URLs.
+- **Remediation Steps**:
+  1. Verify `.env` file is located at the project root.
+  2. Ensure it includes all required keys as described in the [Configuration & Environment Setup](/getting-started/configure-run-validate/configuration-setup) page:
+     - `RPC_URL_<NETWORK>` (e.g., `RPC_URL_MUMBAI`)
+     - `ETHERSCAN_API_KEY`
+     - `DEPLOYER_PRIVATE_KEY`
+  3. No extra spaces or quotes around values; use the format:
+  ```env
+  RPC_URL_MUMBAI=https://rpc-mumbai.maticvigil.com
+  ETHERSCAN_API_KEY=your_key_here
+  DEPLOYER_PRIVATE_KEY=abcdef123456...
+  ```
+  4. Avoid committing `.env` to public repositories.
+
+### Problem: Deployment Script Fails Due to Missing or Invalid Deployer Key
+
+- **Solution**: Validate private key format is correct (hexadecimal with no `0x` prefix) and is for a funded wallet on the intended network.
+- **Tip**: Use a separate wallet for deployments to protect main assets.
+
+---
+
+## 3. RPC Connection & Network Issues
+
+### Problem: Unable to Connect to Blockchain Network
+
+- **Symptoms**: Deployment or test commands time out, RPC requests fail.
+- **Resolutions**:
+  1. Confirm the RPC URL corresponds to the correct chain and is active.
+  2. Test with curl or browser to the RPC URL endpoint.
+  3. If using Infura, Alchemy, or MaticVigil, ensure API keys are valid and not rate-limited.
+  4. Check firewall rules or VPN interference blocking RPC access.
+
+### Problem: Test Fails on Forked Network
+
+- **Cause**: Forked network URL not properly configured or missing archive node support.
+- **Fix**: Use a confirmed archive RPC endpoint for forking to access historical state data.
+
+---
+
+## 4. Deployment & Scripts Execution Issues
+
+### Problem: `forge script` Deployment Fails or Transaction Reverts
+
+- **Steps to Debug**:
+  1. Run deployment with verbose output:
+  ```bash
+  forge script script/DeployVault.s.sol --broadcast --verify --legacy
+  ```
+  2. Inspect error messages closely for revert reasons.
+  3. Confirm the deployer wallet has enough ETH or native token gas balance.
+  4. Check the Referral Code parameter and Pool Addresses Provider address correctness.
+  5. Consult the [Deploying Aave Vault](/getting-started/configure-run-validate/deploying-vault) guide for parameter details.
+
+### Problem: Verification on Etherscan Fails
+
+- Ensure `ETHERSCAN_API_KEY` is set correctly.
+- Check that the source paths and contract names match what verification tools expect.
+
+---
+
+## 5. Running Tests and Validation Failures
+
+### Problem: Tests Fail or Yield Incorrect Results
+
+- **Common Causes**:
+  - Environment variables missing
+  - Network misconfiguration
+  - Incomplete initialization
+
+- **Best Practices**:
+  1. Follow the [First Run & Quick Validation](/getting-started/configure-run-validate/first-run-quick-validation) guide thoroughly.
+  2. Run tests using Foundry:
+  ```bash
+  forge test
+  ```
+  3. Verify tests using forked networks if relevant:
+  ```bash
+  forge test --fork-url <RPC_URL>
+  ```
+  4. Review test output logs for indications.
+
+### Problem: EIP-712 Signature Based Calls Fail
+
+- Confirm the domain separator and nonces are properly managed as described in test contracts.
+- Ensure timestamps and deadlines have not expired.
+- Review error messages for invalid signature errors.
+
+---
+
+## 6. Debugging & Logs
+
+### Accessing Detailed Logs
+
+- Run commands with verbose/trace flags where available.
+- Use Foundry's `--debug` or `--trace` option for enhanced insight.
+- Review console outputs for stack traces and revert reasons.
+
+### Tips for Efficient Debugging
+
+- Incrementally test isolated functions.
+- Use mocks and test harnesses (e.g., `ATokenVaultHarness`) to simulate contract state.
+- Inspect variables such as accumulated fees, max withdrawable assets, and balances with exposed methods.
+
+---
+
+## 7. Additional Resources
+
+- [Installation Instructions](/getting-started/setup-intro/installation)
+- [Configuration & Environment Setup](/getting-started/configure-run-validate/configuration-setup)
+- [Deploying Aave Vault](/getting-started/configure-run-validate/deploying-vault)
+- [First Run & Quick Validation](/getting-started/configure-run-validate/first-run-quick-validation)
+- [Security Audits & Support Channels](/getting-started/troubleshooting-support/audits-and-support)
+
+
+<Tip>
+Consistently maintain a clean environment for deployment and testing by clearing caches, re-installing dependencies, and validating .env files before re-running scripts. This practice prevents many common transient failures.
+</Tip>
+
+<Warning>
+Never expose your deployer private key publicly or commit it to repositories. Use environment variables or secure vaults to protect sensitive credentials.
+</Warning>
+
+<Note>
+If you encounter unexplained errors, consult the GitHub repository issues and community channels for known bugs or upgrade notifications.
+</Note>
