@@ -1,0 +1,159 @@
+---
+title: "Authorization Models"
+description: "Understand the core authorization models of Aave Vault, including standard user roles and privileged manager controls for fee collection and contract upgrades. This page breaks down who can perform key actions and the checks in place to prevent unauthorized access."
+---
+
+# Authorization Models
+
+Understanding who can perform key actions within the Aave Vault is fundamental to maintaining its security and trustworthiness. This page breaks down the core authorization models governing standard user roles and privileged manager capabilities such as fee collection and contract upgrades. You will learn how access is controlled, what roles exist, and the mechanisms preventing unauthorized operations.
+
+---
+
+## 1. Introduction to Authorization in Aave Vault
+The Aave Vault employs a structured authorization model that differentiates between regular users and privileged managers. These models ensure clarity of permissions, prevent accidental or malicious misuse, and enable secure contract operations.
+
+At its core, the Vault uses a role-based access control system where specific roles are defined, each granting access to designated functions. Privileged roles include fee managers and contract upgraders. Regular depositors, by contrast, interact with functions exposed for general use without special permissions.
+
+## 2. Core Roles and Permissions
+
+### Standard Users
+- **Depositors & Withdrawers:** Anyone can deposit supported ERC-20 assets and withdraw their shares in compliance with the ERC-4626 standard. These users interact with public functions that do not require special authorization.
+
+### Vault Managers (Privileged Roles)
+- **Fee Manager:** Responsible for collecting yield fees. This role has exclusive access to fee collection controls.
+- **Contract Upgrader:** Authorized to perform contract upgrades to improve or patch the vault logic.
+
+These privileged roles are typically assigned to secure accounts such as multisigs, DAOs, or governance contracts. This segregation ensures key operational controls remain restricted.
+
+## 3. Authorization Mechanics
+
+### Role-Based Access Control (RBAC)
+Aave Vault employs a robust RBAC system inspired by recognized patterns and libraries such as OpenZeppelin's `AccessControl` and Solmate's `Auth` contracts. This system:
+- Assigns roles to Ethereum accounts.
+- Controls function access based on roles through modifiers.
+- Enables role granting and revocation by privileged accounts.
+
+Access control checks are implemented as entry points to sensitive functions, immediately reverting unauthorized calls.
+
+### Owner and Authority Model
+The Vault uses an owner-authority pattern, where:
+- The `owner` is the highest privileged entity, capable of changing the `authority` module.
+- The `authority` provides fine-grained control via a customizable authorization logic.
+
+This design allows flexibility, such as integrating with specialized authority contracts or upgrading the permission logic.
+
+## 4. Preventing Unauthorized Access
+
+### Immutable Authorization Checks
+All privileged functions enforce authorization checks on sender's role before executing any action.
+For example:
+- Fee collection functions will only process if the message sender has the fee manager role.
+- Contract upgrade functions require an upgrade manager role or owner approval.
+
+These checks create a clear barrier preventing arbitrary users from executing sensitive commands.
+
+### Public vs. Restricted Functionality
+Certain functions exposed by the vault are deliberately marked as public capabilities. This means:
+- Public functions (e.g., deposit, withdraw) require no special roles and are accessible to all users.
+- Restricted functions (e.g., fee collection, upgrading, role setting) mandate appropriate roles.
+
+This distinction is enforced through internal capability mappings within the authority component, preventing privilege escalation.
+
+## 5. User Workflow and Authorization
+
+A typical user interaction with the vault follows this flow:
+
+<Steps>
+<Step title="User Deposits Funds">
+Users call the deposit function, which is a public capability requiring no special permissions.
+</Step>
+<Step title="Yield Accrues Over Time">
+Yield is generated automatically via Aave v3 integration without requiring manual authorization.
+</Step>
+<Step title="Fee Manager Collects Fees">
+A fee manager account invokes fee withdrawal functions, protected by role checks.
+</Step>
+<Step title="Contract Upgrades Occur">
+The contract upgrader role performs maintenance upgrades after satisfying authorization checks.
+</Step>
+</Steps>
+
+This system guarantees a clear separation between public user activities and managerial tasks.
+
+## 6. Best Practices for Secure Role Management
+
+- **Use Multisig or DAO Admins:** Assign privileged roles only to trusted multisigs or governance contracts to prevent single point of failure.
+- **Regularly Review Role Assignments:** Dynamically grant or revoke roles as needed to accommodate operational changes.
+- **Leverage Authority Contracts:** Where possible, use flexible authority contracts that can evolve with protocol needs.
+- **Audit Role Changes:** Log and monitor all role grant and revoke events for traceability.
+
+## 7. Troubleshooting Authorization Issues
+
+If you encounter access errors or unauthorized call reverts:
+
+- Verify your account holds the required role by querying the vault’s role management view functions.
+- Confirm that the correct contract address and version are being interacted with.
+- Check event logs for role changes or misconfiguration.
+- Reach out to the vault management team if unexpected behavior persists.
+
+## 8. Additional Resources
+
+For deeper insights and related workflows, consider reviewing:
+
+- [Feature Overview](../../overview/architecture-feature-overview/feature-overview) – Understand the complete vault functionality.
+- [Security Audits & Support Channels](../../getting-started/troubleshooting-support/audits-and-support) – Learn how audit findings influence authorization designs.
+- [Upgrade and Rollback Strategies](../../deployment/operational-excellence/upgrade-and-rollback-strategies) – Explore secure upgrade workflows involving authorization.
+
+## 9. Summary
+
+The Aave Vault’s authorization model protects its core operations through a clearly defined RBAC system and an owner-authority architecture. By segmenting standard user operations from privileged management, the vault ensures operational security and resilience against unauthorized actions.
+
+---
+
+## Appendix: Solidity Role-Based Authorization Snippet Example
+
+Here is a conceptual snippet illustrating how role checks guard sensitive functions in the vault:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/access/AccessControl.sol";
+
+contract AaveVaultAuthorization is AccessControl {
+    bytes32 public constant FEE_MANAGER_ROLE = keccak256("FEE_MANAGER_ROLE");
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+
+    constructor(address feeMgr, address upgrader) {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(FEE_MANAGER_ROLE, feeMgr);
+        _setupRole(UPGRADER_ROLE, upgrader);
+    }
+
+    function collectFees() external onlyRole(FEE_MANAGER_ROLE) {
+        // Logic to collect yield fees
+    }
+
+    function upgradeContract(address newImplementation) external onlyRole(UPGRADER_ROLE) {
+        // Upgrade logic
+    }
+
+    // Public deposit function accessible by all users
+    function deposit(uint256 amount) external {
+        // Deposit logic
+    }
+}
+```
+
+This example demonstrates how role modifiers enforce access control clearly, ensuring only authorized roles may execute privileged actions.
+
+---
+
+## Source Code Reference
+
+For direct inspection and further exploration of the access control implementation in Aave Vault, visit the [Aave Vault GitHub repository](https://github.com/aave/Aave-Vault/tree/main) and review the relevant authorization files such as:
+
+- `Auth.sol` and `RolesAuthority.sol` in the `lib/solmate/src/auth/authorities/` directory.
+- OpenZeppelin’s role-based control contracts integrated within vault contracts.
+
+Understanding these implementations empowers secure deployment and management of your vault instance.

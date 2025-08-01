@@ -1,0 +1,130 @@
+---
+title: "Target Audience & Use Cases"
+description: "Who should use Aave Vault? This section identifies the main user personas (yield-seeking token holders, dApp integrators, vault managers, protocol strategists), summarizes key use cases such as passive yield earning, vault administration, and protocol integration, and clarifies scenarios where the vault is most valuable."
+---
+
+# Target Audience & Use Cases
+
+## Discover Who Benefits Most from Aave Vault
+
+Aave Vault is purpose-built to empower diverse stakeholders within the DeFi ecosystem. This section clarifies who should engage with the vault, illuminating the specific user personas and scenarios where the vault's design delivers exceptional value. Whether you are eager to earn passive yield on your tokens, a decentralized application (dApp) integrator looking for robust yield components, a vault manager optimizing protocol revenues, or a protocol strategist planning integrations—understanding the vault’s best-fit use cases is essential.
+
+---
+
+## Who Should Use Aave Vault?
+
+### Yield-Seeking Token Holders
+Individuals who hold ERC-20 tokens supported by Aave v3 can effortlessly grow their holdings by depositing into Aave Vault. The vault abstracts away complex DeFi interactions and automatically channels deposits into Aave's lending pool, delivering yield while protecting simplicity and security.
+
+- **Benefit:** Passive, hands-off earning of yield on supported tokens
+- **Scenario:** You hold stablecoins or other assets supported by Aave v3 and want to earn competitive yield without managing positions directly
+
+### dApp Integrators and Developers
+Developers building DeFi platforms can include Aave Vault integration to offer their users a seamless yield-generating option.
+
+- **Benefit:** Leverage a standardized, ERC-4626 compliant vault for composable yield strategies
+- **Scenario:** You want to embed a yield-earning vault that handles all deposits, withdrawals, and incentives behind the scenes
+
+### Vault Managers and Protocol Owners
+These users administer vault parameters and control key operations such as setting fees and claiming rewards. They ensure the vault remains sustainable and profitable.
+
+- **Benefit:** Manage fee-on-yield settings, claim accrued fees and rewards, and perform emergency rescues
+- **Scenario:** You oversee vault deployment and want granular operational controls for governance and revenue capture
+
+### Protocol Strategists and Integrators
+Protocol teams seeking to incorporate the vault into broader financial products or ecosystems can benefit from the vault’s flexibility and standard interface.
+
+- **Benefit:** A dependable component for building complex DeFi structures or liquidity strategies
+- **Scenario:** You are designing protocols that require tokenized vaults with transparent fee and yield mechanics
+
+---
+
+## Key Use Cases Unlocked by Aave Vault
+
+### 1. Passive Yield Earning on Supported ERC-20 Assets
+Deposit your tokens once, and the vault automatically supplies your assets into Aave v3’s lending pool. It handles all conversions and yield accrual, delivering updated value reflected transparently via vault shares.
+
+- Deposit underlying tokens or their corresponding aTokens
+- Continuously earn yield based on Aave’s lending pool performance
+- Withdraw principal and yield in ERC-20 tokens whenever you wish
+
+### 2. Vault Administration and Fee Management
+Vault managers can tune the yield fee ratio, enabling sustainable revenue streams without burdening users.
+
+- Set or adjust fees applied only on earned yield, preserving users’ principal
+- Withdraw accrued fees in the form of Aave aTokens
+- Claim additional rewards distributed by the Aave incentives controller
+
+### 3. Protocol and dApp Integration
+By adhering to the ERC-4626 standard, Aave Vault can be embedded into larger DeFi protocols with minimal friction.
+
+- Simulate deposits, withdrawals, mints, and redeems with up-to-date Aave pool limits
+- Use meta-transactions with EIP-712 signatures for enhanced UX and gasless approvals
+- Ensure vault state reflects real-time vault balances and fee accruals
+
+### 4. Emergency Token Rescue and Operational Safety
+Vault owners can perform emergency rescues of non-AToken assets sent mistakenly to the contract, without interfering with vault assets.
+
+- Protect user funds by designating rescue rights exclusively to the owner
+- Prevent accidental rescue of vault’s core aToken assets
+
+---
+
+## When Is Aave Vault Most Valuable?
+
+- You want a truly passive, secure yield strategy on top of Aave’s market-leading lending pool
+- You need an audited, battle-tested vault contract that implements the ERC-4626 standard perfectly
+- Your use case demands dynamic fee-on-yield structures that incentivize both users and managers fairly
+- You seek composability in DeFi protocols through industry-standard vault interfaces
+
+---
+
+## Practical Examples
+
+Imagine Alice holds USDC tokens and wants to earn yield without managing loans or collateral herself. She deposits her USDC into Aave Vault, which supplies it into Aave v3 automatically. Over time, her vault shares grow in value as yield accrues, less a small fee on the earned yield that rewards the vault manager.
+
+Meanwhile, Bob, a dApp developer, integrates Aave Vault into his lending platform so his users can easily lock tokens that accrue yield without interacting directly with Aave v3, simplifying the user experience.
+
+Carol, a vault manager, monitors accrued fees and claims them periodically to fund ongoing protocol maintenance and development.
+
+---
+
+## Tips & Best Practices
+
+- Ensure you only deposit supported ERC-20 assets listed on Aave v3 to avoid failed transactions.
+- Vault managers should set fee rates judiciously to balance competitiveness and protocol sustainability.
+- Use the meta-transaction features when building UX to reduce gas friction for end users.
+- Regularly claim Aave rewards from the vault to maximize overall returns.
+
+---
+
+## Troubleshooting Common Scenarios
+
+- **Deposit Rejections:** Deposits may fail if asset supply caps are reached on Aave. Check `maxDeposit()` to understand limits.
+- **Withdrawal Limitations:** Withdrawals depend on Aave’s available liquidity. Use `maxWithdraw()` to verify safe withdrawal amounts.
+- **Fee Withdrawal Restrictions:** Only the vault owner can withdraw fees; make sure calls are authorized.
+- **Emergency Rescue:** Allowed only for non-core tokens ensuring vault integrity.
+
+---
+
+## Next Steps
+
+Explore the following documentation pages to deepen your understanding and get hands-on guidance:
+
+- [What is Aave Vault?](./what-is-aave-vault) — Core vault concept and benefits
+- [Core Concepts & Terminology](./core-concepts-terminology) — Dive into design principles and key terms
+- [Feature Overview](../architecture-feature-overview/feature-overview) — Detailed feature set and workflow
+
+To start using or integrating the vault immediately, proceed to the Getting Started documentation.
+
+---
+
+## Additional Resources
+
+- ERC-4626 Standard: Understand the industry-standard tokenized vault interface that Aave Vault builds upon
+- Aave v3 Documentation: Gain insights into the underlying lending protocol supplying yield
+- Security Audits: Review audit reports to understand the security posture of the vault
+
+<hr />
+
+*This page is part of the Product Introduction & Core Concepts section, fitting sequentially alongside foundational and architecture overview pages to provide a comprehensive onboarding path.*

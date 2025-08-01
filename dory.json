@@ -1,0 +1,131 @@
+{
+  "background": {
+    "decoration": "gradient"
+  },
+  "colors": {
+    "dark": "#1E3A8A",
+    "light": "#60A5FA",
+    "primary": "#60A5FA"
+  },
+  "favicon": "/favicon.svg",
+  "fonts": {
+    "family": "Montserrat",
+    "format": "woff2",
+    "source": "https://fonts.gstatic.com/s/googlesansflex/v5/t5sJIQcYNIWbFgDgAAzZ34auoVyXkJCOvp3SFWJbN5hF8Ju1x6sKCyp0l9sI40swNJwGpVd4AZzz0v6lJ4qFXNZhGjLvDSkV4USKMo6qQzwliVdHAy9jxTDHg_ugnAakpwGc-cxgUqDCIUI.woff2"
+  },
+  "icons": {
+    "library": "fontawesome"
+  },
+  "logo": {
+    "dark": "./logo/logo.svg",
+    "light": "./logo/logo.svg"
+  },
+  "name": "Aave Vault",
+  "navigation": {
+    "tabs": [
+      {
+        "groups": [
+          {
+            "group": "Product Introduction \u0026 Core Concepts",
+            "pages": [
+              "overview/product-intro/what-is-aave-vault",
+              "overview/product-intro/core-concepts-terminology",
+              "overview/product-intro/target-audience-use-cases"
+            ]
+          },
+          {
+            "group": "Architecture \u0026 Feature Summary",
+            "pages": [
+              "overview/architecture-feature-overview/architecture-diagram",
+              "overview/architecture-feature-overview/feature-overview",
+              "overview/architecture-feature-overview/integration-touchpoints"
+            ]
+          }
+        ],
+        "tab": "Overview"
+      },
+      {
+        "groups": [
+          {
+            "group": "Introduction \u0026 Environment Setup",
+            "pages": [
+              "getting-started/setup-intro/about-aave-vault",
+              "getting-started/setup-intro/prerequisites-requirements",
+              "getting-started/setup-intro/installation"
+            ]
+          },
+          {
+            "group": "Configuration, Deployment \u0026 First Validation",
+            "pages": [
+              "getting-started/configure-run-validate/configuration-setup",
+              "getting-started/configure-run-validate/deploying-vault",
+              "getting-started/configure-run-validate/first-run-quick-validation"
+            ]
+          },
+          {
+            "group": "Troubleshooting \u0026 Next Steps",
+            "pages": [
+              "getting-started/troubleshooting-support/troubleshooting-common-issues",
+              "getting-started/troubleshooting-support/audits-and-support"
+            ]
+          }
+        ],
+        "tab": "Getting Started"
+      },
+      {
+        "groups": [
+          {
+            "group": "Deploying the Vault",
+            "pages": [
+              "deployment/deploying-the-vault/deployment-prerequisites",
+              "deployment/deploying-the-vault/configuring-deployment-parameters",
+              "deployment/deploying-the-vault/running-the-deployment-script",
+              "deployment/deploying-the-vault/verifying-and-auditing-a-deployment"
+            ]
+          },
+          {
+            "group": "Operational Excellence",
+            "pages": [
+              "deployment/operational-excellence/monitoring-and-logging",
+              "deployment/operational-excellence/security-hardening",
+              "deployment/operational-excellence/upgrade-and-rollback-strategies",
+              "deployment/operational-excellence/disaster-recovery-checklist"
+            ]
+          }
+        ],
+        "tab": "Deployment"
+      },
+      {
+        "groups": [
+          {
+            "group": "Authentication \u0026 Authorization",
+            "pages": [
+              "security/access-control/auth-models",
+              "security/access-control/meta-tx-authentication"
+            ]
+          },
+          {
+            "group": "Data Protection \u0026 Operational Security",
+            "pages": [
+              "security/data-protection/asset-safety",
+              "security/data-protection/privacy-and-data"
+            ]
+          },
+          {
+            "group": "Security Practices, Compliance \u0026 Reporting",
+            "pages": [
+              "security/security-best-practices/user-security-guidelines",
+              "security/security-best-practices/audits-certification",
+              "security/security-best-practices/vulnerability-reporting"
+            ]
+          }
+        ],
+        "tab": "Security"
+      }
+    ]
+  },
+  "styling": {
+    "codeblocks": "dark",
+    "eyebrows": "breadcrumbs"
+  }
+}

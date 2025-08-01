@@ -1,0 +1,174 @@
+---
+title: "User Security Best Practices"
+description: "Actionable recommendations for users and third-party integrators to interact securely with the vault—covering private key management, mitigating phishing risks, and verifying official deployments. Tailored for both technical and operational audiences."
+---
+
+# User Security Best Practices
+
+Ensuring the security of your interactions with the Aave Vault is paramount. This guide offers actionable, clear recommendations to help you safeguard your assets, credentials, and overall experience while using or integrating with the Vault. Whether you are an individual user, a DeFi integrator, or a system operator, following these best practices minimizes risks from common threats such as private key compromise, phishing attacks, and unverified deployments.
+
+---
+
+## 1. Private Key Management
+
+Your private keys are the gateway to controlling your funds and permissions in the Vault. Protecting them is the single most important step you can take.
+
+### Best Practices
+
+- **Use Hardware Wallets:** Store your private keys in hardware wallets like Ledger or Trezor, which keep keys isolated from internet-connected devices.
+- **Avoid Sharing Keys:** Never share private keys or seed phrases with anyone or enter them on untrusted websites or applications.
+- **Secure Backups:** Make encrypted backups of your seed phrases in secure locations, avoiding digital storage where common malware could access them.
+- **Use Separate Keys for Different Roles:** If operating multiple wallets or roles (e.g. owner, admin), use distinct key pairs to limit damage if one key is compromised.
+- **Enable Multi-Signature Controls:** When possible, configure multisig wallets for Vault management. This enforces multiple approvals and reduces risk from a single compromised key.
+
+### Common Pitfalls
+
+- Using software wallets on infected or untrusted devices.
+- Storing seed phrases in plain text or cloud environments without encryption.
+- Reusing private keys across multiple projects or networks.
+
+<Tip>
+Hardware wallets combined with multisig setups significantly reduce risk by adding physical and multi-party controls over Vault administration.
+</Tip>
+
+---
+
+## 2. Mitigating Phishing and Social Engineering Risks
+
+Attackers actively try to trick users into revealing sensitive information or executing unauthorized transactions. Awareness and cautious behavior are key defenses.
+
+### Recognizing Phishing Attempts
+
+- **Unsolicited Communication:** Be wary of unexpected messages, emails, or social media requests claiming to be from official Vault teams.
+- **Look-Alike URLs:** Always verify URLs before entering credentials or signing transactions. Official sites use documented domain names (check the official repository or docs).
+- **Requests for Private Keys or Seeds:** No legitimate entity will ask for your private keys or seed phrases.
+- **Suspicious Transaction Requests:** Be cautious if asked to approve unexpected transactions, especially ones involving contract approvals or token allowances.
+
+### Tips for Safe Interaction
+
+- Use official links directly from the [Aave Vault GitHub repository](https://github.com/aave/Aave-Vault) or official documentation to access portals.
+- Always check smart contract addresses and verify they match official deployments (refer to the Verify Official Deployments section).
+- Employ browser extensions that detect phishing sites and warn you accordingly.
+- Educate your team and users about social engineering tactics and the importance of cautious behavior.
+
+<Warning>
+Never provide your private key or seed phrase in response to messages, and never sign transactions unless you fully understand their purpose.
+</Warning>
+
+---
+
+## 3. Verifying Official Deployments
+
+Interacting only with verified, official Vault contracts protects you from malicious clones or compromised versions.
+
+### How to Verify
+
+- **Check Contract Addresses:** Cross-reference deployed contract addresses with those listed in official documentation or GitHub releases.
+- **Use Block Explorers:** Use trusted block explorers (e.g., Etherscan for Polygon or Avalanche) to inspect the contract’s verified source code, ownership, and transaction history.
+- **Look for Contract Verification Flags:** Confirm that the source code matches OpenZeppelin audited repositories and is verified on-chain.
+- **Audit Reports:** Review linked audit and security reports available on the [Security Audits & Support Channels](https://docs.example/audits-and-support) page.
+
+### Best Practices
+
+- Save and whitelist official contract addresses in your dApps or wallet interfaces.
+- Avoid interacting with or approving transactions on unknown contracts claiming to be Vault implementations.
+
+<Check>
+Verifying contract ownership and access control roles on-chain helps ensure no unauthorized party controls the Vault.
+</Check>
+
+---
+
+## 4. Secure Usage of Meta-Transactions
+
+The Vault supports meta-transactions allowing delegated and gasless operations with EIP-712 signatures. This convenience comes with the responsibility of safeguarding signature operations.
+
+### Recommendations
+
+- Use well-vetted wallets or services that implement EIP-712 securely.
+- Never sign meta-transactions blindly—understand what permissions or operations the meta-transaction grants.
+- Verify the nonce and deadline fields in the signature to prevent replay attacks.
+- Follow guidance on the [Meta-Transaction Authentication](https://docs.example/security/access-control/meta-tx-authentication) page to understand secure usage patterns.
+
+---
+
+## 5. Operational Security and Environment Hygiene
+
+Security extends beyond the Vault itself to the environment and processes users and integrators maintain.
+
+### Practical Steps
+
+- Keep software, wallets, and environment tools up to date with security patches.
+- Use strong, unique passwords for systems related to Vault operation.
+- Employ two-factor authentication (2FA) on all relevant accounts.
+- Regularly audit access logs and permissions for audit trails.
+- Isolate Vault administrative activities from general internet browsing to reduce exposure.
+
+<Tip>
+Consider using dedicated environments or virtual machines for managing Vault deployments and sensitive transactions to minimize risk.
+</Tip>
+
+---
+
+## 6. Responding to Security Incidents
+
+In the unlikely event of a suspected compromise:
+
+- Immediately revoke approvals or roles if possible (e.g., via role revocation in AccessControl).
+- Pause or disable Vault operations if your deployment supports such controls.
+- Report the incident through the official [Vulnerability Disclosure Process](https://docs.example/security/security-best-practices/vulnerability-reporting).
+- Engage your security team and follow your organization's incident response plan.
+
+---
+
+## 7. Additional Resources
+
+- [Access Control Models](https://docs.example/security/access-control/auth-models) — Deep dive on `Ownable` and `AccessControl`
+- [Security Audits & Support Channels](https://docs.example/getting-started/troubleshooting-support/audits-and-support) — Latest audit reports and support contacts
+- [User Data Privacy & Transparency](https://docs.example/security/data-protection/privacy-and-data) — How the Vault handles user data securely
+- [Deploying Aave Vault](https://docs.example/getting-started/configure-run-validate/deploying-vault) — For understanding deployment verification
+
+---
+
+# Summary
+
+Securing your interaction with the Aave Vault depends critically on protecting private keys, recognizing phishing threats, verifying contract authenticity, and practicing operational security. Employ hardware wallets, multi-signature setups, and cautious transaction signing to substantially reduce attack surfaces. Always verify contracts and transactions using official resources, and respond swiftly to any security concerns by following the documented disclosure process.
+
+Follow these best practices to maintain control over your assets and privileges, ensuring both individual and integrated deployments remain resilient against threats.
+
+---
+
+# Examples
+
+### Example: Checking a Role in Your Vault
+```js
+const hasMinterRole = await vaultContract.hasRole(MINTER_ROLE, userAddress);
+if (!hasMinterRole) {
+  console.warn('User does not have minter permissions');
+}
+```
+
+### Example: Verifying Contract Address on Etherscan
+1. Copy the contract address from the Vault deployment.
+2. Visit https://polygonscan.com/ or https://snowtrace.io/ depending on network.
+3. Paste the address into the search bar.
+4. Verify the contract is "Verified" with source code matching OpenZeppelin standards.
+
+---
+
+# Troubleshooting Common Issues
+
+- **Problem:** Suspect phishing or unauthorized transaction prompts.
+  - **Solution:** Cancel and disconnect your wallet. Verify URLs and contract details before reattempting.
+
+- **Problem:** Unable to grant/revoke roles or perform administrative functions.
+  - **Solution:** Confirm your account holds the correct `DEFAULT_ADMIN_ROLE` or equivalent.
+
+- **Problem:** Meta-transactions failing or rejected.
+  - **Solution:** Confirm nonce correctness, deadline validity, and signature integrity.
+
+---
+
+By applying the guidelines in this document, you can confidently safeguard your use of the Aave Vault and contribute to a secure DeFi ecosystem.
+
+

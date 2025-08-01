@@ -1,0 +1,160 @@
+---
+title: "Prerequisites & System Requirements"
+description: "Outlines all necessary tools, network dependencies, and prior knowledge needed before starting—such as Foundry (forge), supported networks (Polygon, Avalanche, Mumbai), .env configuration, and access to RPC endpoints. Guides users on preparing their development and deployment environments."
+---
+
+# Prerequisites & System Requirements
+
+Prepare your environment effectively before working with the Aave Vault to ensure smooth installation, configuration, and operation. This guide outlines all necessary tools, network dependencies, environment setups, and prior knowledge you need for a successful start.
+
+---
+
+## 1. System Requirements
+
+Ensure your development machine and environment meet these baseline specs:
+
+- **Operating System:**
+  - Linux (preferred for compatibility)
+  - macOS (modern versions supported)
+  - Windows 10 or higher (with WSL 2 recommended)
+- **Memory:** Minimum 8 GB RAM
+- **Disk Space:** At least 10 GB free for project files, dependencies, and build artifacts
+- **Node.js:** Version 16.x or higher
+- **Package Manager:** npm 8.x+ or Yarn 1.22+
+
+
+## 2. Required Tools & Dependencies
+
+Before proceeding, install and configure the following core tools:
+
+### Foundry (Forge)
+The Aave Vault development environment leverages Foundry’s Forge for compiling, testing, and deploying smart contracts.
+
+- **Installation:**
+
+  ```bash
+  curl -L https://foundry.paradigm.xyz | bash
+  foundryup
+  ```
+
+- **Verify installation:**
+
+  ```bash
+  forge --version
+  ```
+
+> **Tip:** Foundry is designed for high performance and simplicity in smart contract workflows — mastering it early ensures rapid iteration.
+
+### Supported Blockchain Networks
+
+Aave Vault currently supports deployment and operation on the following Ethereum-compatible networks:
+
+- Polygon (Mainnet and Mumbai Testnet)
+- Avalanche (Mainnet and Fuji Testnet)
+
+> **Network RPC Providers:**
+> You must have access to RPC endpoints for these networks, which allow your tools to communicate with the blockchain nodes. Examples include Infura, Alchemy, QuickNode, or direct public RPC URLs.
+
+### Environment Variable Configuration (`.env` file)
+
+The project requires specific environment variables configured in a `.env` file at the project root. These include:
+
+- `RPC_URL_POLYGON` - RPC endpoint URL for Polygon network
+- `RPC_URL_MUMBAI` - RPC endpoint URL for Mumbai testnet
+- `RPC_URL_AVALANCHE` - RPC endpoint URL for Avalanche mainnet
+- `RPC_URL_FUJI` - RPC endpoint URL for Avalanche Fuji testnet
+- `PRIVATE_KEY` - Your wallet private key for deployments (keep this secure!)
+
+> **Example `.env` file snippet:**
+> ```ini
+> RPC_URL_POLYGON=https://polygon-rpc.com
+> RPC_URL_MUMBAI=https://rpc-mumbai.maticvigil.com
+> RPC_URL_AVALANCHE=https://api.avax.network/ext/bc/C/rpc
+> RPC_URL_FUJI=https://api.avax-test.network/ext/bc/C/rpc
+> PRIVATE_KEY=your_private_key_here
+> ```
+
+> **Security Note:** Never commit `.env` files containing private keys to version control.
+
+## 3. Access Requirements
+
+To interact with public networks and deploy contracts, you'll need:
+
+- **Wallet Credentials:** Private key with sufficient funds on target network
+- **Network Access:** Unrestricted network access or properly configured firewall rules to reach RPC nodes
+
+## 4. Network & Connectivity Considerations
+
+Ensure your firewall or corporate network policies allow outbound connections to the RPC endpoints on standard HTTP(S) ports (usually 443).
+
+- Confirm connectivity to your RPC provider:
+
+  ```bash
+  curl -I https://polygon-rpc.com
+  ```
+
+- Open any required ports or configure proxies that might block JSON-RPC calls.
+
+
+## 5. Prior Knowledge & Familiarity
+
+To effectively work with Aave Vault, it is expected that users are familiar with:
+
+- Ethereum smart contracts, including ERC-20 and ERC-4626 standards
+- Basic blockchain development workflows: compiling, testing, deploying
+- Solidity language fundamentals
+- Usage of Foundry/Forge as a smart contract CLI tool
+- Configuring `.env` files and environment variables
+
+If you are new to any of these areas, consider reviewing [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/4.x/) and the Foundry documentation before continuing.
+
+---
+
+## Troubleshooting Common Prerequisite Issues
+
+- **Foundry not found:** Ensure you have installed Foundry as per the instructions and your PATH includes the forge executable.
+- **RPC connection refused or times out:** Verify that your RPC URLs are correct and your network connection allows access.
+- **Private key errors:** Double-check that your `.env` file uses the correct key name and format, without extra spaces or quotes.
+- **Insufficient wallet funds:** Verify your wallet has testnet or mainnet tokens for gas costs.
+
+<Tip>
+If you encounter issues during prerequisite setup, re-run each installation step carefully and consult the Foundry repository or your RPC service’s status page for network issues.
+</Tip>
+
+---
+
+## Summary
+This section establishes the foundational environment for working with Aave Vault. By ensuring system compatibility, installing critical tools like Foundry, preparing `.env` configurations for network connections, and confirming wallet access, you are positioned to move smoothly into installation and deployment steps.
+
+
+---
+
+## Next Steps
+Proceed to the [Installation Instructions](/getting-started/setup-intro/installation) page to install the software components and verify your setup.
+
+
+---
+
+<Check>
+Have you installed Foundry and verified forge is operational?
+Have you configured your `.env` with valid RPC endpoints for your target network?
+Do you have wallet credentials with sufficient network funds?
+</Check>
+
+
+---
+
+## References & Resources
+
+- Foundry Installation: https://book.getfoundry.sh/
+- RPC Provider Services:
+  - Infura: https://infura.io/
+  - Alchemy: https://www.alchemy.com/
+  - QuickNode: https://www.quicknode.com/
+- Solidity Documentation: https://docs.soliditylang.org/en/latest/
+- OpenZeppelin Contracts Guide: https://docs.openzeppelin.com/contracts/4.x/
+
+
+---
+
+<Source url="https://github.com/aave/Aave-Vault" paths={[{"path": "README.md", "range": "1-20"}]} />

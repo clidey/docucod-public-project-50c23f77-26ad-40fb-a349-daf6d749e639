@@ -1,0 +1,191 @@
+---
+title: "Meta-Transaction Authentication"
+description: "Learn how meta-transactions are supported using EIP-712 signatures to delegate actions without directly sending transactions. This section covers the signing process, signature validation, and replay protection, explaining how users can interact securely and what security guarantees are provided."
+---
+
+# Meta-Transaction Authentication
+
+Meta-transactions empower users to delegate transaction execution to third parties without directly paying gas fees or submitting transactions themselves. This page explains how the Aave Vault supports meta-transactions through EIP-712 compliant signatures, ensuring secure delegation, replay protection, and strong signature validation.
+
+---
+
+## 1. Introduction to Meta-Transactions
+
+In decentralized finance, users often need to perform actions that require sending transactions—incurring gas costs and needing to be on-chain themselves. Meta-transactions allow users to sign a cryptographically-verifiable message offline and authorize another address (a relayer or operator) to submit the transaction on their behalf.
+
+This design enables:
+
+- **Gasless interactions:** Users without ETH or native token for gas can still interact.
+- **Improved UX:** Actions can be batched or delegated to more efficient relayers.
+- **Delegated permissioning:** Enables third parties to enact transactions under a user's explicit authorization.
+
+---
+
+## 2. How Aave Vault Implements Meta-Transaction Authentication
+
+The Aave Vault leverages the EIP-712 standard for typed structured data signing, which improves security and interoperability by allowing users to sign typed messages rather than arbitrary data hashes. 
+
+### Key Components:
+
+- **EIP-712 Signatures:** Users sign structured permission messages offline.
+- **Signature Validation:** Vault verifies signatures on-chain via `MetaTxHelpers` library.
+- **Replay Protection:** Nonce tracking per address and signature expiration guard against replay attacks.
+
+### Meta-Transaction Signature Workflow
+
+1. **User Intent:** A user prepares the parameters for a vault operation (e.g., deposit, withdraw) including receiver, amount, nonce, and deadline.
+2. **Generating Signature:** The user signs the typed data (structured via EIP-712) offline using their private key.
+3. **Relayer Submission:** A relayer or another user submits the signed data on-chain by calling a `withSig` variant of the vault function (e.g., `depositWithSig`).
+4. **On-Chain Verification:** The vault verifies the signature using the `MetaTxHelpers` library, ensuring validity, expiration, and matching parameters.
+5. **Transaction Execution:** If verification passes, the vault executes the transaction on behalf of the signer.
+
+---
+
+## 3. Signature Validation Process
+
+The core on-chain logic for confirming a meta-transaction signature involves multiple steps ensuring both the identity and integrity of the signer and the data:
+
+### 3.1. Digest Calculation
+
+- The vault calculates an EIP-712 digest combining the domain separator and the hashed structured message.
+- This digest represents the unique fingerprint for the exact operation parameters.
+
+### 3.2. Signature Recovery and Verification
+
+- Using the `MetaTxHelpers._validateRecoveredAddress` method, the vault attempts to recover the signer address from the signature.
+- Supports both EOAs and contract wallets implementing `IERC1271` for smart contract signature validation.
+- Requires:
+  - Signature deadline not expired.
+  - Recovered address must match the expected signer.
+
+### 3.3. Nonce and Replay Protection
+
+- Each signer account has a nonce that the vault tracks.
+- Nonces increment with each successful meta-transaction, preventing reuse of old signatures.
+
+---
+
+## 4. Supported Meta-Transaction Operations
+
+The Aave Vault offers meta-transaction-enabled variants of key user NFT asset operations:
+
+- `depositWithSig` / `depositATokensWithSig`
+- `mintWithSig` / `mintWithATokensWithSig`
+- `withdrawWithSig` / `withdrawATokensWithSig`
+- `redeemWithSig` / `redeemWithATokensWithSig`
+
+These functions accept an `EIP712Signature` struct that includes the signature and metadata necessary to authenticate the call.
+
+---
+
+## 5. User Flow Example: Performing a Deposit via Meta-Transaction
+
+Imagine Alice wants to deposit tokens into the vault but does not want to submit the transaction herself:
+
+<Steps>
+<Step title="Step 1: Alice Prepares the Deposit">
+Alice creates the deposit parameters including amount, receiver address, and nonce.
+</Step>
+<Step title="Step 2: Alice Signs the Deposit Authorization">
+Using her wallet, Alice signs the structured deposit data following EIP-712 standard, producing a signature.
+</Step>
+<Step title="Step 3: Relayer Calls depositWithSig">
+Bob, acting as a relayer, submits the `depositWithSig` transaction including Alice’s signature.
+</Step>
+<Step title="Step 4: Vault Validates and Executes">
+The vault recovers Alice’s address from the signature, verifies the nonce and deadline, then processes the deposit on Alice’s behalf.
+</Step>
+<Step title="Outcome">
+Alice’s tokens are deposited without her paying gas, and Bob may receive a separate relayer fee.
+</Step>
+</Steps>
+
+---
+
+## 6. Best Practices & Security Considerations
+
+### For Users and Relayers:
+
+- **Check Deadlines:** Always verify the signature's deadline to avoid expired calls.
+- **Nonce Management:** Ensure nonce values are current and synchronized to avoid signature rejections.
+- **Authorized Relayers:** Relayers should be trusted or operate transparently to avoid misuse.
+
+### For Vault Managers:
+
+- **Validate Signatures Strictly:** Enforce EIP-712 compliance and reject incorrect or malformed data.
+- **Support Contract Wallets:** Accommodate IERC1271 compliant contracts for smart contract wallet users.
+- **Monitor Nonce Usage:** Track and prevent replay attacks rigorously.
+
+### Common Pitfalls to Avoid
+
+- Using outdated signatures or incorrect nonces.
+- Ignoring signature expiration leading to failed transactions.
+- Accepting malformed or wrong function typehashes.
+
+---
+
+## 7. Troubleshooting Meta-Transaction Failures
+
+If a meta-transaction fails, check:
+
+- **Signature Validity:** Signature matches the operation parameters.
+- **Domain Separator:** Consistency of the domain separator used for signing.
+- **Nonce correctness:** Nonce supplied matches the next expected nonce for the signer.
+- **Expiration:** The deadline has not passed.
+- **Receiver and Owner mismatch:** Payload parameters match actual call parameters.
+
+Failing any of these checks causes transactions to revert with errors such as `SIG_INVALID` or `SIG_EXPIRED`.
+
+---
+
+## 8. Additional Resources & References
+
+- [OpenZeppelin EIP-712 Utilities](https://docs.openzeppelin.com/contracts/4.x/api/utils#EIP712)
+- [Meta Transactions Overview - OpenZeppelin](https://docs.openzeppelin.com/contracts/4.x/metatx)
+- [IERC1271: Signature Validation for Smart Contracts](https://eips.ethereum.org/EIPS/eip-1271)
+- [Aave Vault Core Concepts & Terminology](/overview/product-intro/core-concepts-terminology)
+- [Security Best Practices for User Security Guidelines](/security/security-best-practices/user-security-guidelines)
+
+---
+
+## 9. Code References
+
+The following is a simplified illustration of the signature validation helper used in the smart contracts:
+
+```solidity
+library MetaTxHelpers {
+    function _validateRecoveredAddress(
+        bytes32 digest,
+        address expectedAddress,
+        IATokenVault.EIP712Signature calldata sig
+    ) internal view {
+        require(sig.deadline >= block.timestamp, "SIG_EXPIRED");
+
+        address recoveredAddress = expectedAddress;
+
+        if (recoveredAddress.code.length != 0) {
+            // Contract wallet: verify using IERC1271
+            bytes memory concatenatedSig = abi.encodePacked(sig.r, sig.s, sig.v);
+            require(
+                IERC1271(expectedAddress).isValidSignature(digest, concatenatedSig) ==
+                EIP1271_MAGIC_VALUE,
+                "SIG_INVALID"
+            );
+        } else {
+            // Externally Owned Account (EOA): ecrecover
+            recoveredAddress = ecrecover(digest, sig.v, sig.r, sig.s);
+            require(recoveredAddress != address(0) && recoveredAddress == expectedAddress, "SIG_INVALID");
+        }
+    }
+
+    function _calculateDigest(bytes32 hashedMessage, bytes32 domainSeparator) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19\x01", domainSeparator, hashedMessage));
+    }
+}
+```
+
+This logic ensures secure meta-transaction authorization that aligns with EIP-712.
+
+---
+
+By following this guide, users and integrators can confidently interact with the Aave Vault using meta-transactions, unlocking greater flexibility and usability while maintaining strong security guarantees.

@@ -1,0 +1,264 @@
+---
+title: "Installation Instructions"
+description: "Walks the user through cloning the repository, installing dependencies, and building the project with Foundry commands. Offers best practices for a clean local installation, both for testing and live deployment scenarios."
+---
+
+# Installation Instructions
+
+This guide walks you through cloning the Aave Vault repository, installing all necessary dependencies, and building the project using Foundry commands. Whether you're setting up a testing environment or preparing for live deployment, these instructions ensure a clean and reliable local installation.
+
+---
+
+## 1. Prerequisites & System Requirements
+
+Before starting, ensure your system meets the following requirements:
+
+- **Operating System**: Linux, macOS, or Windows with WSL2
+- **Disk Space**: Minimum 2GB free space for cloning and dependencies
+- **Memory**: At least 4GB RAM recommended for compiling
+- **Tools Installed**:
+  - [Git](https://git-scm.com/downloads) for cloning the repository
+  - [Foundry](https://github.com/foundry-rs/foundry) for building and scripting
+  - [Node.js and npm](https://nodejs.org/) if you plan to run frontend or scripts outside Solidity
+
+---
+
+## 2. Cloning the Repository
+
+Start by cloning the official Aave Vault repository to your local machine.
+
+```bash
+# Clone the repo
+git clone https://github.com/aave/Aave-Vault.git
+
+# Navigate into the project directory
+cd Aave-Vault
+```
+
+<Tip>
+Cloning the repository fresh ensures you have the latest code and configuration files used for deployment and testing.
+</Tip>
+
+---
+
+## 3. Installing Dependencies
+
+Aave Vault uses Foundry to handle compilation, testing, and deployments. After cloning, install Foundry and its dependencies as follows.
+
+### 3.1 Install Foundry
+
+If you haven't installed Foundry yet, run:
+
+```bash
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+```
+
+This will install `forge`, `cast`, and other Foundry tools.
+
+### 3.2 Install Solidity Dependencies
+
+The project depends on OpenZeppelin contracts, Aave V3 core contracts, and related packages. These are managed through Foundry's `remappings` and will be downloaded automatically during the build process.
+
+You can force download dependencies by running:
+
+```bash
+forge install
+```
+
+### 3.3 Verify Foundry and Dependencies
+
+Confirm that Foundry and dependencies are correctly installed:
+
+```bash
+forge --version
+forge remappings
+```
+
+Remappings should include entries for `@openzeppelin`, `@aave-v3-core`, and other libraries reflected in the project’s `remappings.txt`.
+
+---
+
+## 4. Building the Project
+
+Now compile the smart contracts to validate installation.
+
+```bash
+forge build
+```
+
+Expected result:
+
+- Compiled contract artifacts are generated in `out/`
+- No compilation errors
+
+If compilation fails, check error messages for missing dependencies or Solidity version mismatch. The project targets Solidity `^0.8.10`.
+
+<Tip>
+Use `forge clean` to remove build artifacts before rebuilding, ensuring a clean build environment.
+</Tip>
+
+---
+
+## 5. Running Deployment and Upgrade Scripts
+
+The project provides example deployment and upgrade scripts under the `script/` directory, written in Solidity and run via Foundry.
+
+### 5.1 Prepare Environment Variables
+
+Both `Deploy.s.sol` and `Upgrade.s.sol` scripts require a private key stored in an environment variable `PRIVATE_KEY`.
+
+Set it securely in your shell session:
+
+```bash
+export PRIVATE_KEY='your_private_key_here'
+```
+
+Ensure your key has enough testnet/mainnet funds for deployment.
+
+### 5.2 Deploying the Vault
+
+Run the deploy script:
+
+```bash
+forge script script/Deploy.s.sol:Deploy --broadcast --verify
+```
+
+This will:
+- Deploy the `ATokenVault` implementation contract
+- Deploy the proxy contract with initialization
+- Print relevant deployment addresses and configuration parameters
+
+### 5.3 Upgrading the Vault
+
+To upgrade an existing vault proxy to a new implementation, use:
+
+```bash
+forge script script/Upgrade.s.sol:Upgrade --broadcast
+```
+
+Ensure you modify the deployment parameters such as `VAULT_ADDRESS`, `UNDERLYING_ASSET_ADDRESS`, `AAVE_POOL_ADDRESSES_PROVIDER_ADDRESS`, and `REFERRAL_CODE` directly in the script before running.
+
+---
+
+## 6. Verification Steps
+
+After building or deploying, verify success by:
+
+- Checking the output logs for deployed contract addresses
+- Confirming contract files exist in `out/` and are readable
+- Running basic Foundry tests to ensure contracts work as expected:
+
+```bash
+forge test
+```
+
+- Visiting Etherscan (or relevant block explorer) to confirm contract verification after deployment
+
+---
+
+## 7. Best Practices for a Clean Installation
+
+- **Use a dedicated workspace**: Keep your clone in a separate directory to avoid conflicts
+- **Clear caches regularly**: Use `forge clean` if builds fail unexpectedly
+- **Pin dependency versions**: Use remappings and lock files to prevent breaking changes
+- **Secure your private keys**: Never commit your private keys or expose them publicly
+- **Test on a testnet first**: Always validate scripts on test networks before mainnet deployment
+
+---
+
+## 8. Troubleshooting Common Issues
+
+<AccordionGroup title="Common Installation Issues">
+<Accordion title="Dependency Not Found Errors">
+If you see errors about missing OpenZeppelin or Aave contracts:
+
+- Ensure `forge install` completed successfully.
+- Check `remappings.txt` includes entries such as `@openzeppelin=...`.
+- Run `forge update` to refresh dependencies.
+</Accordion>
+
+<Accordion title="Private Key Environment Variable Not Set">
+
+Make sure the `PRIVATE_KEY` environment variable is exported correctly in your shell.
+
+```bash
+export PRIVATE_KEY='your_key_here'
+```
+
+Restart your terminal or source your profile if necessary.
+
+</Accordion>
+
+<Accordion title="Solidity Version Mismatch">
+
+The project requires Solidity `^0.8.10`. Verify your foundry config is set to compile with compatible versions by checking `foundry.toml` or confirming via `forge config`.
+
+</Accordion>
+
+<Accordion title="Build Fails After Dependency Update">
+
+Try clearing the cache:
+
+```bash
+forge clean
+```
+
+Then recompile:
+
+```bash
+forge build
+```
+
+If the issue persists, verify that installed dependencies are compatible.
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 9. Additional Resources
+
+For more details on deploying, configuring, and running the vault, consult:
+
+- [Deploying Aave Vault](../../deployment/deploying-the-vault/running-the-deployment-script)
+- [Configuration & Environment Setup](../../getting-started/configure-run-validate/configuration-setup)
+- [First Run & Quick Validation](../../getting-started/configure-run-validate/first-run-quick-validation)
+- [Troubleshooting Common Setup Issues](../../getting-started/troubleshooting-support/troubleshooting-common-issues)
+
+---
+
+By following this guide, you will have a clean, functional environment to build, deploy, and upgrade the Aave Vault with full control and transparency.
+
+
+---
+
+## Appendix: Sample Commands at a Glance
+
+```bash
+# Clone repo
+git clone https://github.com/aave/Aave-Vault.git
+cd Aave-Vault
+
+# Install Foundry if needed
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+
+# Install dependencies
+forge install
+
+# Build contracts
+forge build
+
+# Set deployment key
+export PRIVATE_KEY='your_private_key_here'
+
+# Deploy vault
+forge script script/Deploy.s.sol:Deploy --broadcast --verify
+
+# Upgrade vault
+forge script script/Upgrade.s.sol:Upgrade --broadcast
+
+# Run tests
+forge test
+```

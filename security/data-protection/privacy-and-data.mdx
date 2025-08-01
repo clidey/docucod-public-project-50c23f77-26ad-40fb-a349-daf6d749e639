@@ -1,0 +1,130 @@
+---
+title: "User Data Privacy & Transparency"
+description: "Review policies and practices related to user data on-chain and off-chain. This page explains which information is stored publicly, what metadata is protected, and how transparency is balanced with privacy in user operations."
+---
+
+# User Data Privacy & Transparency
+
+Ensuring user data privacy while maintaining transparency is a paramount consideration in operating and interacting with the Aave Vault. This page outlines how the vault manages user data both on-chain and off-chain, clarifies what information is publicly accessible, describes privacy protection mechanisms, and explains how transparency is balanced against privacy needs.
+
+---
+
+## 1. On-Chain Data Transparency
+
+The Aave Vault operates on the Ethereum blockchain, where all contract states and transactions are, by design, publicly accessible. This creates inherent transparency for all user interactions, which is crucial for trust and auditability.
+
+### What Data Is Public?
+
+- **User Deposits & Withdrawals**: Every deposit and withdrawal is recorded in transaction logs and visible on-chain.
+- **Token Balances & Shares**: Vault share balances, token holdings, and accrued yield are maintained on-chain and thus publicly available.
+- **Access Control Events**: Role assignments and changes (e.g., ownership or role grants in the contract) are emitted as transparent events.
+
+### Implications for Users
+
+While asset and share data are visible, user identities behind addresses remain pseudonymous unless externally linked via off-chain information. Users should be mindful that all vault interactions — including meta-transactions — leave on-chain traces.
+
+<Note>
+The nature of blockchain means absolute privacy cannot be guaranteed; however, pseudonymity does provide a layer of user obfuscation.
+</Note>
+
+---
+
+## 2. Off-Chain Metadata and Privacy
+
+The Aave Vault does not inherently store or process any off-chain personal user data. User metadata such as names, emails, or IP addresses are managed separately by front-end applications and wallet providers.
+
+### What Off-Chain Data Is Handled?
+
+- Off-chain information is generally limited to what dApp front-ends or integrators collect for user experience enhancements.
+- The vault itself does not access or store personal data beyond the Ethereum address.
+
+### Best Practices for Front-End Developers
+
+- Handle user metadata according to applicable regulations (e.g., GDPR).
+- Avoid linking Ethereum addresses with personally identifying information in non-consented ways.
+- Use secure communication channels and encryption for any off-chain user data.
+
+---
+
+## 3. Signature and Meta-Transaction Privacy
+
+The vault supports meta-transactions validated via EIP-712 signatures. These cryptographically signed messages enable delegated, gasless interactions by users.
+
+### What Is Visible On-Chain?
+
+- Signatures themselves are not stored on-chain; only the validated actions resulting from these signatures appear as contract state changes or events.
+- The validation process ensures that only authorized operations are executed, without revealing the user's private keys.
+
+<Info>
+Meta-transactions enhance privacy by allowing users to delegate execution to relayers without exposing sensitive keys or details on-chain.
+</Info>
+
+### Security Considerations
+
+- Signatures include nonces and deadlines to prevent replay attacks, maintaining operational privacy.
+- Off-chain signature generation must be done in secure environments to prevent leakages.
+
+---
+
+## 4. Balancing Transparency With Privacy
+
+Open smart contract architectures rely on transparent state and event data for security, auditability, and user assurance. At the same time, protecting users' privacy remains critical.
+
+### How Aave Vault Balances This
+
+- Exposes only necessary state and event data to support functional transparency (deposits, withdrawals, role assignments).
+- Leverages cryptographic signature schemes to avoid unnecessary on-chain data.
+- Avoids storing or processing any off-chain sensitive user data, pushing that responsibility to front-end layers.
+
+<Check>
+Users wishing to maximize privacy should use best practices such as interacting via privacy-enhancing wallets, avoiding address reuse, and carefully managing off-chain identity linkage.
+</Check>
+
+---
+
+## 5. Recommendations for Users
+
+- **Use Distinct Addresses**: To limit linkability between interactions, consider using fresh addresses when appropriate.
+- **Interact Through Trusted Interfaces**: Use official or reputable user interfaces that respect privacy practices.
+- **Understand Public Data Exposure**: Recognize that all vault-related transactions and balances are publicly auditable.
+- **Secure Off-Chain Data**: Ensure any personal information shared with dApps or services externally is handled securely.
+
+---
+
+## 6. Troubleshooting Privacy Concerns
+
+<AccordionGroup title="Common User Questions and Issues">
+<Accordion title="How do I verify if my transactions are public?">
+You can view all transactions and balances on-chain via explorers such as Etherscan. Searching your Ethereum address will show deposits, withdrawals, and events related to the vault.
+</Accordion>
+<Accordion title="Can others see my token balances in the vault?">
+Yes. Vault shares and token balances are visible on-chain. Use separate addresses if you want to reduce easy linkability.
+</Accordion>
+<Accordion title="Are meta-transactions less visible than regular transactions?">
+Meta-transactions still appear on-chain as the resulting interaction, but the signature process helps protect private key exposure and separates transaction origin from user.
+</Accordion>
+<Accordion title="How to keep my off-chain data private?">
+Only share personal data with trusted apps. The vault itself does not manage personal data; on-chain addresses do not reveal identity by themselves.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 7. Further Reading and References
+
+- [Aave Vault Core Concepts & Terminology](/overview/product-intro/core-concepts-terminology) — foundational vault operating concepts
+- [Meta-Transaction Authentication](/security/access-control/meta-tx-authentication) — deep dive into EIP-712 signatures and meta-tx privacy
+- [User Security Best Practices](/security/security-best-practices/user-security-guidelines) — recommendations to enhance your security posture
+- [Ethereum Smart Contract Privacy Discussion](https://consensys.github.io/smart-contract-best-practices/security-considerations/) — industry best practices
+
+---
+
+## 8. Summary
+
+The Aave Vault commits to transparent on-chain operations while respecting users' privacy boundaries by not storing or handling off-chain personal data. Users benefit from a pseudonymous blockchain environment, cryptographic safeguards for meta-transactions, and best practice recommendations for maintaining privacy in their interactions.
+
+<UserSupport>
+If you encounter privacy-related issues or have concerns, please reach out via the official support channels or consult the community forums to get timely assistance.
+</UserSupport>
+
+---

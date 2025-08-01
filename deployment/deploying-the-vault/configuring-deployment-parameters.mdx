@@ -1,0 +1,178 @@
+---
+title: "Configuring Deployment Parameters"
+description: "Details how to inspect and adjust the deployment parameters in the deployment script to customize the Aave Vault for your use case. Walks through common configuration options and validates that the script is ready for broadcasting transactions."
+---
+
+# Configuring Deployment Parameters
+
+Customize your Aave Vault deployment by inspecting and adjusting the key parameters within the `Deploy.s.sol` deployment script. This guide walks you through the most important configuration options and validates the readiness of your deployment before broadcasting transactions.
+
+---
+
+## 1. Understanding the Deployment Script
+
+The deployment script, `Deploy.s.sol`, written in Solidity using Foundry's scripting framework, controls the parameters that define your vault's characteristics and integration with the Aave protocol. These parameters determine how the vault behaves, interacts with underlying assets, and manages fees.
+
+Key deployment parameters are declared at the top of the `Deploy` contract under the section labeled `DEPLOYMENT PARAMETERS - CHANGE THESE FOR YOUR VAULT`. You must configure these carefully to align with your use case and network environment.
+
+---
+
+## 2. Key Deployment Parameters Explained
+
+| Parameter                               | Description                                                                                  | Requirement                                                  |
+|---------------------------------------|----------------------------------------------------------------------------------------------|--------------------------------------------------------------|
+| `UNDERLYING_ASSET_ADDRESS`            | The ERC-20 token address that the vault will accept and manage. Must be Aave-supported.      | Must be a valid ERC-20 token address listed in Aave Protocol |
+| `REFERRAL_CODE`                       | Referral code used in Aave interactions. Defaults to `0` if none.                           | Optional, set as needed                                        |
+| `AAVE_POOL_ADDRESSES_PROVIDER_ADDRESS` | Address of the `PoolAddressesProvider` contract in Aave Protocol for the target network.     | Required to connect vault to Aave v3 pool                      |
+| `PROXY_ADMIN_ADDRESS`                 | Address authorized to manage the upgradeable proxy of the vault.                            | Must be set to a valid governance or administrative address   |
+| `OWNER_ADDRESS`                       | The wallet or contract that will own and control the vault post-deployment.                 | Must be secure and controlled by vault managers                |
+| `SHARE_NAME`                         | The name for the vault's ERC-4626 share token representing user ownership.                   | Set a descriptive, meaningful name                             |
+| `SHARE_SYMBOL`                       | Token symbol for the vault shares.                                                          | Keep consistent with name, standard token symbol format       |
+| `FEE`                               | Vault fee expressed in wad format (1e18 = 100%). For example, `0.1e18` means 10% fee.       | Set according to desired fee on yield                           |
+| `INITIAL_LOCK_DEPOSIT`               | Initial deposit amount to lock in vault at deployment, preventing frontrunning attacks.      | Must be non-zero for production deployments                     |
+
+---
+
+## 3. Editing Deployment Parameters
+
+### How to configure:
+
+1. Open the [`script/Deploy.s.sol`](https://github.com/aave/Aave-Vault/blob/main/script/Deploy.s.sol) file.
+2. Locate the section marked with `// DEPLOYMENT PARAMETERS - CHANGE THESE FOR YOUR VAULT`.
+3. Replace default `address(0)` placeholders with actual addresses relevant to your target network and deployment environment.
+4. Adjust `SHARE_NAME` and `SHARE_SYMBOL` to fit branding or tokenomics.
+5. Set `FEE` with your vault’s fee (note that input is in wad format; 0.1e18 equals 10%).
+6. Set a meaningful `INITIAL_LOCK_DEPOSIT` amount. This ensures the vault is initialized properly and secures the deployment.
+
+<Tip>
+Never deploy with an `INITIAL_LOCK_DEPOSIT` of zero. The script includes a safety check to prevent potential frontrunning exploits by requiring a non-trivial initial deposit.
+</Tip>
+
+---
+
+## 4. Validating Parameter Readiness Before Deployment
+
+The script’s internal checks help ensure deployment readiness:
+
+- **Initial Lock Deposit Check**: The deployment will revert if `INITIAL_LOCK_DEPOSIT` is zero.
+- **Approval and Allowance**: The deployer address must have sufficient token balance and approval to cover the initial deposit to the precomputed proxy address.
+- **Proxy Admin & Owner**: Must be valid addresses with control authority.
+
+During script execution, the deployment logs critical information such as deployer address, balance, block number, and chain ID to verify correct environment setup.
+
+You will also see a precomputed proxy address and associated allowance status logged so you can cross-verify deployment security.
+
+---
+
+## 5. Common Configuration Scenarios
+
+### Scenario 1: Deploying on Polygon Mumbai Testnet
+
+- Set `UNDERLYING_ASSET_ADDRESS` to the testnet DAI token deployed on Mumbai.
+- Use the corresponding Aave PoolAddressesProvider contract address for Mumbai.
+- Choose a deployer account with sufficient MATIC for gas and token balance for initial deposit.
+- Set `OWNER_ADDRESS` to the control account for vault operations.
+- Set fees and share names according to test environment needs.
+
+### Scenario 2: Mainnet Deployment
+
+- Replace all placeholder addresses with mainnet contract and account addresses.
+- Carefully set the referral code if a referral rewards program is applicable.
+- Choose a gas-optimized `INITIAL_LOCK_DEPOSIT` aligned with economic security.
+- Confirm that all addresses and parameters match governance and compliance requirements.
+
+---
+
+## 6. Tips for Successful Deployment Configuration
+
+- **Verify Addresses**: Always ensure all addresses are checksummed and verified on the target network.
+- **Double-Check Initial Deposit**: The initial deposit secures your deployment and must be backed by adequate token balance and approval.
+- **Set Meaningful Share Names and Symbols**: This aids user recognition and integration on interfaces.
+- **Test on a Testnet First**: Practice full deployment on Mumbai or other testnets before mainnet deploy.
+- **Secure Proxy Admin and Owner Addresses**: These control upgradeability and vault management.
+
+---
+
+## 7. Next Steps After Configuration
+
+After adjusting your deployment parameters and validating readiness:
+
+1. Proceed to the [Running the Deployment Script](./running-the-deployment-script) guide to execute deployment using Foundry.
+2. Follow the post-deployment verification steps to confirm successful deployment.
+3. Review upgrade paths and maintenance strategies for operational excellence.
+
+---
+
+## 8. Troubleshooting
+
+<AccordionGroup title="Common Configuration Issues and Solutions">
+<Accordion title="Error: Initial deposit not set">
+Deployment will fail if `INITIAL_LOCK_DEPOSIT` is left at zero.
+
+**Solution:** Set a non-zero initial deposit amount to secure the vault from frontrunning.
+</Accordion>
+<Accordion title="Incorrect token address for UNDERLYING_ASSET_ADDRESS">
+If the underlying asset address is not valid or unsupported by Aave, deployment or subsequent interactions will fail.
+
+**Solution:** Confirm the token address is a valid ERC-20 and listed in Aave v3.
+</Accordion>
+<Accordion title="Insufficient token balance or allowance">
+If deployer's token balance is insufficient or allowance is not set for the proxy address, deployment may fail.
+
+**Solution:** Approve token transfer for the precomputed proxy address, and ensure balance covers the initial deposit.
+</Accordion>
+<Accordion title="Proxy admin or owner address mistakes">
+Misconfigured administrative addresses prevent control over the vault.
+
+**Solution:** Use addresses controlled by your team or governance mechanisms with secure private key management.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 9. Additional Resources
+
+- View the [Deploy.s.sol script on GitHub](https://github.com/aave/Aave-Vault/blob/main/script/Deploy.s.sol) to see parameter setup and deployment flow.
+- For advanced contract upgrade configuration, see the [Upgrade.s.sol script](https://github.com/aave/Aave-Vault/blob/main/script/Upgrade.s.sol).
+- Refer to the [Aave PoolAddressesProvider documentation](https://docs.aave.com/developers/deployed-contracts/pool-addresses-provider) for accurate addresses per network.
+- Explore the [Getting Started > Configuration & Environment Setup](../../getting-started/configure-run-validate/configuration-setup) page to prepare related environment variables.
+
+---
+
+By carefully customizing and validating your deployment parameters, you ensure a secure, compliant, and efficient launch of your Aave Vault tailored to your specific use case.
+
+
+---
+
+# Diagram: Deployment Parameters and Flow Overview
+
+```mermaid
+flowchart TD
+
+  Subgraph DeployScript["Deploy.s.sol Script"]
+    DeployStart["Start Deployment"] --> ConfigureParams["Configure Deployment Parameters"]
+    ConfigureParams --> ValidateDeposit["Check INITIAL_LOCK_DEPOSIT != 0"]
+    ValidateDeposit --> DeployVaultImpl["Deploy ATokenVault Implementation"]
+    DeployVaultImpl --> EncodeInit["Encode Initializer Call with OWNER, FEE, SHARE_NAME, SHARE_SYMBOL, INITIAL_LOCK_DEPOSIT"]
+    EncodeInit --> ApproveTokens["Approve Tokens for Proxy Address"]
+    ApproveTokens --> DeployProxy["Deploy TransparentUpgradeableProxy with Proxy Admin"]
+    DeployProxy --> StopBroadcast["Stop Broadcasting Transactions"]
+    StopBroadcast --> DisplayVaultData["Display Vault Details"]
+  end
+
+  ConfigureParams -->|Set PARAMETERS| UNDERLYING_ASSET["UNDERLYING_ASSET_ADDRESS"]
+  ConfigureParams --> REFERRAL_CODE["REFERRAL_CODE"]
+  ConfigureParams --> POOL_PROVIDER["AAVE_POOL_ADDRESSES_PROVIDER_ADDRESS"]
+  ConfigureParams --> PROXY_ADMIN["PROXY_ADMIN_ADDRESS"]
+  ConfigureParams --> OWNER_ADDR["OWNER_ADDRESS"]
+  ConfigureParams --> SHARE_NAME["SHARE_NAME"]
+  ConfigureParams --> SHARE_SYMBOL["SHARE_SYMBOL"]
+  ConfigureParams --> FEE_PARAM["FEE"]
+  ConfigureParams --> INITIAL_DEPOSIT["INITIAL_LOCK_DEPOSIT"]
+
+  classDef param fill:#f9f,stroke:#333,stroke-width:1px;
+  class UNDERLYING_ASSET,REFERRAL_CODE,POOL_PROVIDER,PROXY_ADMIN,OWNER_ADDR,SHARE_NAME,SHARE_SYMBOL,FEE_PARAM,INITIAL_DEPOSIT param;
+
+```
+
+---
