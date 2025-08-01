@@ -3,4 +3,232 @@ title: "First Run & Quick Validation"
 description: "Guides users to rapidly verify that their deployment works—by running the test suite (including forked-network tests) and using property tests to validate ERC-4626 compliance. Outlines how to check for successful build, contract interaction basics, and confirms the vault's operational status."
 ---
 
-*This page will automatically be generated from the codebase*
+# First Run & Quick Validation
+
+This guide helps you swiftly verify that your Aave Vault deployment functions correctly. It walks you through running the test suite—including forked-network tests—using property tests for ERC-4626 compliance, checking the successful build and deploying contract interaction basics. By following these steps, you'll confirm your vault is operational and ready for use.
+
+---
+
+## 1. Pre-Test Setup
+
+Before running tests, ensure your environment is correctly configured:
+
+- **RPC URLs for Forked Tests:**
+
+  The test suite requires RPC endpoints for Polygon and Avalanche networks to run forked network tests.
+
+  Create a `.env` file at the root of the repository with these entries:
+
+  ```bash
+  POLYGON_RPC_URL="[Your Polygon RPC URL]"
+  AVALANCHE_RPC_URL="[Your Avalanche RPC URL]"
+  ```
+
+  > You can obtain free RPC URLs from providers like Alchemy, Infura, or QuickNode.
+
+- **Foundry Installation:**
+
+  Foundry is the toolchain used to build and test the vault. If not installed:
+
+  ```bash
+  curl -L https://foundry.paradigm.xyz | bash
+  foundryup
+  ```
+
+- **Build Project:**
+
+  Compile the contracts to confirm your environment is set:
+
+  ```bash
+  forge build
+  ```
+
+  > If you encounter errors during build, verify your Solidity version and dependencies are correctly installed.
+
+- **Verify Network Fork Setup:**
+
+  The tests will fork Polygon at a predefined block number, so ensure your `POLYGON_RPC_URL` is valid and responsive.
+
+
+## 2. Running The Test Suite
+
+To validate your vault's functionality and integration, run the full test suite.
+
+### 2.1 Run All Tests
+
+Execute the following command:
+
+```bash
+forge test
+```
+
+- This runs all unit tests, forked network tests, and property-based tests.
+- Tests verify:
+  - Vault deployment correctness
+  - Deposit, withdrawal, and redeem behavior
+  - Fee accrual logic
+  - ERC-4626 compliance through property tests
+
+### 2.2 Understand Key Test Classes
+
+- **Forked Network Tests (`test/ATokenVaultFork.t.sol`):**
+  - Runs on Polygon mainnet fork
+  - Validates interactions with the real Aave protocol state
+- **Edge & Scenario Tests (`test/ATokenVaultEdge.t.sol`):**
+  - Covers specific edge cases like small initial deposits and claimable fees calculation
+- **Property Tests (`test/ATokenVaultProperties.t.sol`):**
+  - Uses mock contracts to test ERC-4626 interface correctness
+
+
+## 3. Interpreting Test Results
+
+- **Success:**
+  - All tests passing indicates the deployment is correctly configured.
+  - Pay particular attention to forked network tests passing without revert.
+
+- **Failures:**
+  - If tests fail, isolate which category (forked, edge cases, or property tests).
+  - Common issues include invalid RPC URLs, insufficient initial deposit, or deployment parameter errors.
+
+  Troubleshooting tips:
+  - Confirm your `.env` RPC endpoints are set and accessible.
+  - Check that `INITIAL_LOCK_DEPOSIT` is non-zero and sufficient.
+  - Review deployment logs for errors.
+
+
+## 4. Quick Manual Validation
+
+After running automated tests, perform these manual validations:
+
+### 4.1 Check Build Output
+
+Ensure the build command runs without errors:
+
+```bash
+forge build
+```
+Expected: Contracts compile successfully with no errors or warnings.
+
+### 4.2 Deploy Locally or On Testnet
+
+Use the provided `Deploy.s.sol` script under the `script` folder.
+
+Set environment variables:
+
+```bash
+export PRIVATE_KEY="[your private key]"
+export POLYGON_RPC_URL="[your polygon RPC URL]"
+export MUMBAI_RPC_URL="[your mumbai RPC URL]"
+export ETHERSCAN_API_KEY="[your etherscan API key]"
+```
+
+Deploy on Mumbai Testnet:
+
+```bash
+forge script script/Deploy.s.sol:Deploy --rpc-url $MUMBAI_RPC_URL --broadcast --verify
+```
+
+After deployment, the script logs vault parameters like owner, fee, and token addresses. Confirm these match your expectations.
+
+### 4.3 Interact With The Vault
+
+Using [Foundry's console](https://book.getfoundry.sh/reference/forge/forge-console) or any Ethereum client:
+
+- Connect to the deployed vault contract address.
+- Try depositing and withdrawing tokens.
+- Verify balance changes and emitted events.
+
+
+## 5. Validating ERC-4626 Compliance with Property Tests
+
+The property tests verify compliance with the ERC-4626 standard using mock contracts.
+
+Run them with:
+
+```bash
+forge test --match-path test/ATokenVaultProperties.t.sol
+```
+
+Passing these confirms that your vault aligns with ERC-4626 expectations for tokenized vaults.
+
+
+## 6. Common Pitfalls to Avoid
+
+- **Zero Initial Deposit:** Deployment requires a non-zero initial lock deposit to prevent frontrunning vectors.
+- **Wrong or Unavailable RPC URLs:** Forked tests will fail without valid RPC endpoints.
+- **Incorrect Deployment Parameters:** Fee, owner address, and pool provider must be valid.
+- **Running Tests Without Build:** Always run `forge build` before tests to ensure contracts are compiled.
+
+
+## 7. Helpful Commands Summary
+
+| Task                       | Command                                 |
+|----------------------------|----------------------------------------|
+| Build Contracts            | `forge build`                          |
+| Run All Tests              | `forge test`                          |
+| Run Only Property Tests    | `forge test --match-path test/ATokenVaultProperties.t.sol` |
+| Deploy to Mumbai Testnet   | `forge script script/Deploy.s.sol:Deploy --rpc-url $MUMBAI_RPC_URL --broadcast --verify` |
+
+
+## 8. Troubleshooting
+
+<AccordionGroup title="Common Issues and Solutions">
+<Accordion title="Test Suite Cannot Access Forked Network">
+
+- Ensure `.env` contains valid RPC URLs for Polygon and Avalanche.
+- Check your internet connection and RPC provider status.
+- Test RPC URL connectivity:
+
+  ```bash
+  curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' $POLYGON_RPC_URL
+  ```
+
+</Accordion>
+<Accordion title="Deployment Fails Due To Zero Initial Deposit">
+
+- Set a meaningful initial deposit value in your deployment script `.sol` or environment variable.
+- The initial deposit prevents frontrunning and is mandatory.
+
+</Accordion>
+<Accordion title="Fee Setting Not Accepted During Deployment">
+
+- The fee must be within the acceptable range (0 ≤ fee ≤ 1e18).
+- Confirm you set fee value correctly (e.g., `0.1e18` for 10%).
+
+</Accordion>
+<Accordion title="Tests Fail With Revert Errors">
+
+- Review revert message to identify issues:
+  - `ERR_ASSET_NOT_SUPPORTED` means underlying token isn't approved on Aave.
+  - `ERR_DEPOSIT_EXCEEDS_MAX` indicates supply caps or frozen reserve.
+- Validate reserve and token addresses.
+
+</Accordion>
+</AccordionGroup>
+
+
+## 9. Next Steps
+
+- Proceed to the [Troubleshooting Common Setup Issues](../troubleshooting-support/troubleshooting-common-issues) page for deeper problem solving.
+- Review [Deploying Aave Vault](../configure-run-validate/deploying-vault) for production deployment details.
+- Explore [Configuration & Environment Setup](../configure-run-validate/configuration-setup) to fine-tune your environment.
+
+
+---
+
+## References & Resources
+
+- [Aave Vault GitHub Repository](https://github.com/aave/Aave-Vault)
+- [ATokenVault Contract Source](https://github.com/aave/Aave-Vault/blob/main/src/ATokenVault.sol)
+- [Test Suite Overview and Source](https://github.com/aave/Aave-Vault/tree/main/test)
+- [ERC-4626 Property Tests Explanation](https://a16zcrypto.com/generalized-property-tests-for-erc4626-vaults/)
+- [Foundry Documentation](https://book.getfoundry.sh/)
+
+
+<Check>
+Ensure you have configured environment variables correctly and completed the build before running tests or deploying.
+</Check>
+
+---
+
+By successfully completing these instructions, you confirm that your Aave Vault deployment is functional, compliant, and ready to support your yield-bearing token vault use cases.
